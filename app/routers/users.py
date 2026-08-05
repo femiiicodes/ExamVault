@@ -24,6 +24,13 @@ class UserResponse(BaseModel):
     department:str
     role:str
 
+class UserUpdate(BaseModel):
+    first_name: str | None = None
+    last_name: str | None = None
+    email: str | None = None
+    level: str | None = None
+    department: str | None = None
+    role: str | None = None
 
 @router.get('/show-user-details',response_model=UserResponse)
 async def get_user_details(user:user_dependency):
@@ -33,38 +40,33 @@ async def get_user_details(user:user_dependency):
 async def edit_user_details(
     db: db_dependency,
     user: user_dependency,
-    first_name: Optional[str] = Form(None),
-    last_name: Optional[str] = Form(None),
-    email: Optional[str] = Form(None),
-    level: Optional[str] = Form(None),
-    department: Optional[str] = Form(None),
-    role: Optional[str] = Form(None),
+    data:UserUpdate
 ):
     if user is None:
         raise HTTPException(status_code=401, detail="User not authenticated")
 
 
-    if first_name is not None:
-        user.first_name = first_name
+    if data.first_name is not None:
+        user.first_name = data.first_name
 
-    if last_name is not None:
-        user.last_name = last_name
+    if data.last_name is not None:
+        user.last_name = data.last_name
 
-    if email is not None:
-        user.email = email
+    if data.email is not None:
+        user.email = data.email
 
-    if level is not None:
-        user.level = level
+    if data.level is not None:
+        user.level = data.level
 
-    if department is not None:
-        user.department = department
+    if data.department is not None:
+        user.department = data.department
 
-    if role is not None:
-        user.role = role
+    if data.role is not None:
+        user.role = data.role
 
     db.commit()
 
-@router.put('/change-password')
+@router.put('/change-password',status_code=204)
 async def change_password(
                           db:db_dependency,
                           user:user_dependency,
@@ -78,4 +80,14 @@ async def change_password(
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,detail='Old password incorrect')
 
     user.hashed_password = hash_password(new_password)
+    db.commit()
+
+@router.delete('/delete-user')
+async def delete_user(db:db_dependency,
+                      user:user_dependency,
+                      id:int):
+    if user is None:
+        raise HTTPException(status_code=401, detail="User not authenticated")
+    user_model = db.query(User).filter(User.id == id).first()
+    db.delete(user_model)
     db.commit()

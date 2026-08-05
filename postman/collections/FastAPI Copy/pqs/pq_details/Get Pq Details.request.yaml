@@ -1,0 +1,15 @@
+$kind: http-request
+url: "{{baseUrl}}/pqs/pq_details?id=6016"
+method: GET
+headers:
+  Accept: application/json
+queryParams:
+  id: "6016"
+auth:
+  type: oauth2
+  credentials:
+    accessTokenUrl: /auth/token
+    grant_type: password_credentials
+settings: {}
+examples: ./.resources/Get Pq Details.resources/examples
+order: 1000

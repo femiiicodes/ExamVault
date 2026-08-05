@@ -1,0 +1,13 @@
+$kind: http-request
+url: "{{baseUrl}}/users/show-user-details"
+method: GET
+headers:
+  Accept: application/json
+auth:
+  type: oauth2
+  credentials:
+    accessTokenUrl: /auth/token
+    grant_type: password_credentials
+settings: {}
+examples: ./.resources/Get User Details.resources/examples
+order: 1000

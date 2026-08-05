@@ -33,3 +33,7 @@ uploads/
 
 # Logs
 *.log
+
+.db
+
+.pdf

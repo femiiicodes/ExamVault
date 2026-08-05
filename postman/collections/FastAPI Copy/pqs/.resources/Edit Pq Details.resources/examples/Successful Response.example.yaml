@@ -1,0 +1,40 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/pqs/?id=6016"
+  method: PUT
+  headers:
+    - key: Content-Type
+      value: multipart/form-data
+    - key: Authorization
+      value: <token>
+      description: "Added as a part of security scheme: oauth2"
+  queryParams:
+    id: "6016"
+  body:
+    type: formdata
+    content:
+      - type: text
+        key: course
+        value: string
+      - type: text
+        key: session
+        value: string
+      - type: text
+        key: assessment_type
+        value: string
+      - type: text
+        key: department
+        value: string
+      - type: text
+        key: level
+        value: string
+      - type: file
+        key: file
+        src: []
+response:
+  statusCode: 204
+  statusText: No Content
+  body:
+    type: text
+    content: ""
+order: 1000

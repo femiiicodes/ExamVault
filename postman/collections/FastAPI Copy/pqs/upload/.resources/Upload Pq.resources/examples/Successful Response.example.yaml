@@ -1,0 +1,42 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/pqs/upload"
+  method: POST
+  headers:
+    - key: Content-Type
+      value: multipart/form-data
+    - key: Accept
+      value: application/json
+    - key: Authorization
+      value: <token>
+      description: "Added as a part of security scheme: oauth2"
+  body:
+    type: formdata
+    content:
+      - type: text
+        key: course
+        value: string
+      - type: text
+        key: session
+        value: string
+      - type: text
+        key: assessment_type
+        value: string
+      - type: text
+        key: department
+        value: string
+      - type: text
+        key: level
+        value: string
+      - type: file
+        key: file
+        src: []
+response:
+  statusCode: 201
+  statusText: Created
+  headers:
+    Content-Type: application/json
+  body:
+    type: text
+    content: ""
+order: 1000

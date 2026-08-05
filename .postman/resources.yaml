@@ -6,8 +6,7 @@ workspace:
 
 cloudResources:
   collections:
-    ../postman/collections/FastAPI: 077913ca-4128-4b54-97c9-8506722fab22
-    ../postman/collections/FastAPI Copy: 4be854b9-233c-4309-ae5b-dc065b1feaec
+    ../postman/collections/FastAPI Copy: 830365a1-91c7-4ae1-b180-c469513a3d9f
     ../postman/collections/FastAPI Copy 2: d4df63ac-d9fc-49b9-8c7e-4b11b696539f
 
 # All resources in the `postman/` folder are automatically registered in Local View.

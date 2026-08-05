@@ -48,7 +48,7 @@ def get_pq_details(id:int,db:db_dependency,user:user_dependency):
             raise HTTPException(status_code=404,detail='Pq not found')
     return pq_model
 
-@router.put('/',status_code=204)
+@router.put('/edit-pq',status_code=204)
 def edit_pq_details(id:int,
                     db:db_dependency,
                     user:user_dependency,
@@ -61,7 +61,7 @@ def edit_pq_details(id:int,
                     file:Optional[UploadFile] = File(None),):
     if user is None:
         raise HTTPException(status_code=401,detail='User not authenticated')
-    if user.role is not 'admin':
+    if user.role != 'admin':
         raise HTTPException(status_code=401,detail='User not authorized')
     pq_model = db.query(Pq).filter(Pq.id == id).first()
     if pq_model is None:
@@ -86,9 +86,8 @@ def edit_pq_details(id:int,
               shutil.copyfileobj(file.file,buffer)
 
     db.commit()
-
-
-
+    new_pq_model = db.query(Pq).filter(Pq.id == id).first()
+    return new_pq_model
 
 @router.post('/upload',status_code=201)
 async def upload_pq(
@@ -104,7 +103,7 @@ async def upload_pq(
                     ):
     if user is None:
         raise HTTPException(status_code=401,detail='User not authenticated')
-    if user.role is not 'admin':
+    if user.role != 'admin':
         raise HTTPException(status_code=401,detail='User not authorized')
     UPLOAD_DIR = 'uploads/past_questions'
     os.makedirs(UPLOAD_DIR, exist_ok=True)
@@ -120,13 +119,13 @@ async def upload_pq(
 
     return 'File pasted successfully'
 
-@router.delete('/',status_code=204)
+@router.delete('/delete-pq',status_code=204)
 async def delete_pq(db:db_dependency,
                     id:int,
                     user:user_dependency):
     if user is None:
         raise HTTPException(status_code=401,detail='User not authenticated')
-    if user.role is not 'admin':
+    if user.role != 'admin':
         raise HTTPException(status_code=401,detail='User not authorized')
     pq_model = db.query(Pq).filter(Pq.id == id).first()
     if pq_model is None:

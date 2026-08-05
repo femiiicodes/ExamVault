@@ -1,0 +1,15 @@
+$kind: http-request
+url: "{{baseUrl}}/users/delete-user?id=6016"
+method: DELETE
+headers:
+  Accept: application/json
+queryParams:
+  id: "6016"
+auth:
+  type: oauth2
+  credentials:
+    accessTokenUrl: /auth/token
+    grant_type: password_credentials
+settings: {}
+examples: ./.resources/Delete User.resources/examples
+order: 1000

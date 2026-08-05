@@ -1,0 +1,18 @@
+$kind: http-request
+url: "{{baseUrl}}/auth/token"
+method: POST
+headers:
+  Content-Type: application/x-www-form-urlencoded
+  Accept: application/json
+body:
+  type: urlencoded
+  content:
+    username: string
+    password: string
+    grant_type: password
+    scope: ""
+    client_id: string
+    client_secret: string
+settings: {}
+examples: ./.resources/Login For Access Token.resources/examples
+order: 1000

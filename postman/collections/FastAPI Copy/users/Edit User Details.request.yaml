@@ -1,0 +1,25 @@
+$kind: http-request
+url: "{{baseUrl}}/users/"
+method: PUT
+headers:
+  Content-Type: application/json
+  Accept: application/json
+body:
+  type: json
+  content: |-
+    {
+      "first_name": "string",
+      "last_name": "string",
+      "email": "string",
+      "level": "string",
+      "department": "string",
+      "role": null
+    }
+auth:
+  type: oauth2
+  credentials:
+    accessTokenUrl: /auth/token
+    grant_type: password_credentials
+settings: {}
+examples: ./.resources/Edit User Details.resources/examples
+order: 4000

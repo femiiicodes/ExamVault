@@ -1,0 +1,35 @@
+$kind: http-request
+url: "{{baseUrl}}/pqs/upload"
+method: POST
+headers:
+  Content-Type: multipart/form-data
+  Accept: application/json
+body:
+  type: formdata
+  content:
+    - type: text
+      key: course
+      value: string
+    - type: text
+      key: session
+      value: string
+    - type: text
+      key: assessment_type
+      value: string
+    - type: text
+      key: department
+      value: string
+    - type: text
+      key: level
+      value: string
+    - type: file
+      key: file
+      src: []
+auth:
+  type: oauth2
+  credentials:
+    accessTokenUrl: /auth/token
+    grant_type: password_credentials
+settings: {}
+examples: ./.resources/Upload Pq.resources/examples
+order: 1000

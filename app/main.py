@@ -6,7 +6,7 @@ app = FastAPI()
 
 @app.get('/')
 async def home():
-    return 'Hello'
+    return {'Hi':'Hello'}
 
 
 app.include_router(pqs.router)

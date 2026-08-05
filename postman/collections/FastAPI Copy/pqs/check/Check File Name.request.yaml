@@ -1,0 +1,10 @@
+$kind: http-request
+url: "{{baseUrl}}/pqs/check?id=6016"
+method: GET
+headers:
+  Accept: application/json
+queryParams:
+  id: "6016"
+settings: {}
+examples: ./.resources/Check File Name.resources/examples
+order: 1000
