@@ -10,6 +10,9 @@ from sqlalchemy.orm import Session
 from fastapi.responses import FileResponse
 from fastapi import HTTPException
 from app.routers.auth import get_current_user
+from fastapi.templating import Jinja2Templates
+
+template = Jinja2Templates(directory='templates')
 
 router = APIRouter(tags=['pqs'],prefix='/pqs')
 
@@ -18,6 +21,11 @@ db_dependency = Annotated[Session,Depends(get_db)]
 
 user_dependency = Annotated[User,Depends(get_current_user)]
 
+
+### PAGES ###
+
+
+### ROUTES ###
 class PastQuestion(BaseModel):
     session:str
     assessment_type:str

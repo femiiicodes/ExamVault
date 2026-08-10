@@ -27,6 +27,7 @@ class User(Base):
     email = Column(String)
     level = Column(String)
     department=Column(String)
+    college = Column(String)
     role = Column(String)
     hashed_password = Column(String)
 

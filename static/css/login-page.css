@@ -1,0 +1,466 @@
+/* ============================================
+   ExamVault Login Page Styles
+   Theme: White + Blue
+   Font: Satoshi
+   ============================================ */
+
+/* CSS Variables */
+:root {
+    --color-primary: #1d4ed8;
+    --color-primary-dark: #1e40af;
+    --color-primary-light: #dbeafe;
+    --color-primary-subtle: #eff6ff;
+    --color-text: #0f172a;
+    --color-text-muted: #64748b;
+    --color-bg: #f8fafc;
+    --color-card-bg: #ffffff;
+    --color-border: #e2e8f0;
+    --color-border-focus: #1d4ed8;
+    --color-error: #dc2626;
+    --color-error-bg: #fef2f2;
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Reset & Base */
+*, *::before, *::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Satoshi', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-weight: 400;
+    color: var(--color-text);
+    background-color: var(--color-bg);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 24px;
+}
+
+svg {
+    display: block;
+    flex-shrink: 0;
+}
+
+/* ============================================
+   Navigation
+   ============================================ */
+.navbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 48px;
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(226, 232, 240, 0.6);
+}
+
+.nav-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 700;
+    font-size: 1.25rem;
+    color: var(--color-primary);
+}
+
+.nav-brand .brand-icon {
+    width: 26px;
+    height: 26px;
+    color: var(--color-primary);
+}
+
+.nav-links {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.nav-link {
+    padding: 8px 16px;
+    border-radius: var(--radius-sm);
+    font-weight: 500;
+    font-size: 0.95rem;
+    color: var(--color-text-muted);
+    transition: var(--transition);
+}
+
+.nav-link:hover {
+    color: var(--color-primary);
+    background: var(--color-primary-light);
+}
+
+.nav-link--outline {
+    color: var(--color-primary);
+    border: 1.5px solid var(--color-primary);
+    margin-left: 8px;
+}
+
+.nav-link--outline:hover {
+    background: var(--color-primary);
+    color: white;
+}
+
+/* ============================================
+   Login Page Layout
+   ============================================ */
+.login-page {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 120px 24px 64px;
+    background:
+        radial-gradient(ellipse 60% 40% at 10% 20%, rgba(29, 78, 216, 0.06), transparent),
+        radial-gradient(ellipse 50% 50% at 90% 80%, rgba(29, 78, 216, 0.04), transparent);
+}
+
+.login-card {
+    width: 100%;
+    max-width: 420px;
+    background: var(--color-card-bg);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--color-border);
+    box-shadow: 0 4px 32px rgba(15, 23, 42, 0.06);
+    padding: 48px 40px;
+}
+
+.login-header {
+    text-align: center;
+    margin-bottom: 32px;
+}
+
+.login-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--color-text);
+    margin-bottom: 8px;
+    letter-spacing: -0.01em;
+}
+
+.login-subtitle {
+    font-size: 0.95rem;
+    color: var(--color-text-muted);
+}
+
+/* ============================================
+   Form Elements
+   ============================================ */
+.login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.form-group label,
+.label-row label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--color-text);
+}
+
+.form-group input {
+    width: 100%;
+    padding: 12px 14px;
+    font-family: 'Satoshi', sans-serif;
+    font-size: 0.95rem;
+    color: var(--color-text);
+    background: var(--color-card-bg);
+    border: 1.5px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    outline: none;
+    transition: var(--transition);
+}
+
+.form-group input::placeholder {
+    color: #94a3b8;
+}
+
+.form-group input:hover {
+    border-color: #cbd5e1;
+}
+
+.form-group input:focus {
+    border-color: var(--color-border-focus);
+    box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.1);
+}
+
+/* Label row with forgot link */
+.label-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.forgot-link {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--color-primary);
+    transition: var(--transition);
+}
+
+.forgot-link:hover {
+    color: var(--color-primary-dark);
+    text-decoration: underline;
+}
+
+/* Input wrapper for password toggle */
+.input-wrapper {
+    position: relative;
+}
+
+.input-wrapper input {
+    padding-right: 44px;
+}
+
+.toggle-password {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    color: var(--color-text-muted);
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.toggle-password:hover {
+    color: var(--color-primary);
+}
+
+.eye-icon {
+    width: 20px;
+    height: 20px;
+}
+
+.eye-icon.hidden {
+    display: none;
+}
+
+/* Error messages */
+.error-msg {
+    font-size: 0.8rem;
+    color: var(--color-error);
+    display: none;
+    margin-top: 2px;
+}
+
+.error-msg.is-visible {
+    display: block;
+}
+
+.form-group input.error {
+    border-color: var(--color-error);
+    background: var(--color-error-bg);
+}
+
+/* ============================================
+   Remember Me Toggle
+   ============================================ */
+.remember-toggle {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    user-select: none;
+    margin-top: -4px;
+}
+
+.remember-toggle input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.check-box {
+    width: 18px;
+    height: 18px;
+    border: 1.5px solid var(--color-border);
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition);
+    flex-shrink: 0;
+}
+
+.check-box svg {
+    width: 12px;
+    height: 12px;
+    color: white;
+    opacity: 0;
+    transform: scale(0.8);
+    transition: var(--transition);
+}
+
+.remember-toggle input:checked + .check-box {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+}
+
+.remember-toggle input:checked + .check-box svg {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.remember-label {
+    font-size: 0.9rem;
+    color: var(--color-text-muted);
+}
+
+/* ============================================
+   Buttons
+   ============================================ */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 14px 32px;
+    border-radius: var(--radius-sm);
+    font-family: 'Satoshi', sans-serif;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: var(--transition);
+    border: none;
+}
+
+.btn--primary {
+    background: var(--color-primary);
+    color: white;
+    box-shadow: 0 4px 16px rgba(29, 78, 216, 0.25);
+}
+
+.btn--primary:hover {
+    background: var(--color-primary-dark);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(29, 78, 216, 0.35);
+}
+
+.btn--primary:active {
+    transform: translateY(0);
+}
+
+.btn--full {
+    width: 100%;
+    margin-top: 4px;
+}
+
+/* ============================================
+   Login Footer
+   ============================================ */
+.login-footer {
+    text-align: center;
+    margin-top: 24px;
+    padding-top: 24px;
+    border-top: 1px solid var(--color-border);
+}
+
+.login-footer p {
+    font-size: 0.95rem;
+    color: var(--color-text-muted);
+}
+
+.link {
+    color: var(--color-primary);
+    font-weight: 600;
+    transition: var(--transition);
+}
+
+.link:hover {
+    color: var(--color-primary-dark);
+    text-decoration: underline;
+}
+
+/* ============================================
+   Footer
+   ============================================ */
+.footer {
+    background: var(--color-text);
+    color: white;
+    padding: 24px 0;
+}
+
+.footer-bottom {
+    text-align: center;
+}
+
+.footer-bottom p {
+    font-size: 0.85rem;
+    color: #64748b;
+}
+
+/* ============================================
+   Responsive
+   ============================================ */
+@media (max-width: 600px) {
+    .navbar {
+        padding: 12px 20px;
+    }
+
+    .login-page {
+        padding: 100px 16px 40px;
+    }
+
+    .login-card {
+        padding: 32px 24px;
+        border-radius: var(--radius-md);
+    }
+
+    .login-title {
+        font-size: 1.5rem;
+    }
+}
+
+/* ============================================
+   Entrance Animation
+   ============================================ */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.login-card {
+    animation: fadeInUp 0.5s ease-out;
+}

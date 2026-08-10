@@ -3,14 +3,17 @@ from jose import JWTError, jwt
 from passlib.context import CryptContext
 from app.database import get_db
 from typing import Annotated
-from fastapi import APIRouter, Depends, HTTPException, Form
+from fastapi import APIRouter, Depends, HTTPException, Form, Request
 from sqlalchemy.orm import Session
 from app.models import User
 from pydantic import BaseModel
 from datetime import datetime,timedelta, timezone
 from starlette import status
+from fastapi.templating import Jinja2Templates
+
 
 router = APIRouter(tags=['auth'],prefix='/auth')
+templates = Jinja2Templates(directory='templates')
 
 db_dependency = Annotated[Session,Depends(get_db)]
 
@@ -73,7 +76,20 @@ class UserRequest(BaseModel):
     level:str
     department:str
     role:str
+    college:str
     password:str
+
+
+
+### PAGES ###
+@router.get('/register-page')
+async def render_resgister_page(request:Request):
+    return templates.TemplateResponse(request=request,name='register-page.html')
+
+@router.get('/login-page')
+async def render_resgister_page(request:Request):
+    return templates.TemplateResponse(request=request,name='login-page.html')
+
 
 @router.post('/token',response_model=Token)
 async def login_for_access_token(db:db_dependency,form_data= Depends(OAuth2PasswordRequestForm)):
