@@ -1,3 +1,4 @@
+from fastapi.responses import JSONResponse
 from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
 from jose import JWTError, jwt
 from passlib.context import CryptContext
@@ -91,14 +92,27 @@ async def render_resgister_page(request:Request):
     return templates.TemplateResponse(request=request,name='login-page.html')
 
 
-@router.post('/token',response_model=Token)
+@router.post('/token')
 async def login_for_access_token(db:db_dependency,form_data= Depends(OAuth2PasswordRequestForm)):
     user = authenticate_user(db,form_data.username,form_data.password)
     if user is None:
         raise HTTPException(status_code=401,detail='Incorrect Email or Password')
-    token = create_access_token({'sub':user.email},expires_delta=timedelta(minutes=30))
-    return {'access_token':token,
-            'token_type':'bearer'}
+    access_token = create_access_token({'sub':user.email},expires_delta=timedelta(minutes=30))
+    # return {'access_token':token,
+    #         'token_type':'bearer'}
+    response = JSONResponse(content={
+        'detail':'Login successful'
+    })
+    response.set_cookie(
+        key='access_token',
+        value=access_token,
+        httponly=True,
+        samesite='lax',
+        max_age=2592000,
+        secure=True
+    )
+
+
 
 async def get_current_user(db:db_dependency,token = Depends(oauth2_scheme)):
     credential_exception = HTTPException(status_code=401,detail='Unable to validate credentials')

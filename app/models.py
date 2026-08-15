@@ -12,16 +12,16 @@ class Pq(Base):
     department = Column(String)
     level = Column(String)
     course = Column(String)
-    
     file_path = Column(String)
     time_created = Column(DateTime)
-    user_id = Column(Integer,ForeignKey('users.id'))
+    uploader_id = Column(Integer, ForeignKey('users.id'))
     uploader = relationship('User',back_populates='past_questions')
 
 class User(Base):
     
     __tablename__ = 'users'
     id = Column(Integer,index=True,primary_key=True,autoincrement=True,nullable=False)
+    programme_id = Column(Integer,ForeignKey('programmes.id'),nullable=True)
     first_name = Column(String)
     last_name = Column(String)
     email = Column(String)
@@ -32,6 +32,133 @@ class User(Base):
     hashed_password = Column(String)
 
     past_questions = relationship('Pq',back_populates='uploader')
+    programme = relationship('Programme', back_populates='users')
 
 
 
+class College(Base):
+    __tablename__ = "colleges"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, unique=True, nullable=False)
+
+    programmes = relationship(
+        "Programme",
+        back_populates="college"
+    )
+
+class Programme(Base):
+    __tablename__ = "programmes"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, unique=True, nullable=False)
+
+    college_id = Column(
+        Integer,
+        ForeignKey("colleges.id"),
+        nullable=False
+    )
+
+    college = relationship(
+        "College",
+        back_populates="programmes"
+    )
+
+    programme_courses = relationship(
+        "ProgrammeCourse",
+        back_populates="programme",
+        cascade="all, delete-orphan"
+    )
+
+    users = relationship(
+        "User",
+        back_populates="programme"
+    )
+
+class Course(Base):
+    __tablename__ = "courses"
+
+    id = Column(Integer, primary_key=True, index=True)
+
+    code = Column(
+        String,
+        unique=True,
+        nullable=False
+    )
+
+    title = Column(
+        String,
+        nullable=False
+    )
+
+    programme_courses = relationship(
+        "ProgrammeCourse",
+        back_populates="course",
+        cascade="all, delete-orphan"
+    )
+
+
+class ProgrammeCourse(Base):
+    __tablename__ = "programme_courses"
+
+    id = Column(Integer, primary_key=True, index=True)
+
+    programme_id = Column(
+        Integer,
+        ForeignKey("programmes.id"),
+        nullable=False
+    )
+
+    course_id = Column(
+        Integer,
+        ForeignKey("courses.id"),
+        nullable=False
+    )
+
+    level = Column(
+        Integer,
+        nullable=False
+    )
+
+    semester = Column(
+        Integer,
+        nullable=False
+    )
+
+    programme = relationship(
+        "Programme",
+        back_populates="programme_courses"
+    )
+
+    course = relationship(
+        "Course",
+        back_populates="programme_courses"
+    )
+
+
+# class UserCourse(Base):
+#     __tablename__ = "user_courses"
+
+#     id = Column(Integer, primary_key=True, index=True)
+
+#     user_id = Column(
+#         Integer,
+#         ForeignKey("users.id"),
+#         nullable=False
+#     )
+
+#     course_id = Column(
+#         Integer,
+#         ForeignKey("courses.id"),
+#         nullable=False
+#     )
+
+#     user = relationship(
+#         "User",
+#         back_populates="user_courses"
+#     )
+
+#     course = relationship(
+#         "Course",
+#         back_populates="user_courses"
+#     )

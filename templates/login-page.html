@@ -40,7 +40,7 @@
                 <!-- Email -->
                 <div class="form-group">
                     <label for="email">Email Address</label>
-                    <input type="email" id="email" name="email" placeholder="you@school.edu" required>
+                    <input type="email" id="email" name="username" placeholder="you@school.edu" required>
                     <span class="error-msg" id="emailError">Please enter a valid email</span>
                 </div>
 
@@ -135,14 +135,14 @@
             showError('passwordError', !password);
             if (!password) valid = false;
 
-            if (valid) {
-                const formData = new FormData(form);
-                const data = Object.fromEntries(formData.entries());
-                console.log('Login valid! Submitting...', data);
-                // fetch('/api/login', { method: 'POST', body: JSON.stringify(data), headers: {'Content-Type': 'application/json'} });
-            }
+            // if (valid) {
+            //     const formData = new FormData(form);
+            //     const data = Object.fromEntries(formData.entries());
+            //     console.log('Login valid! Submitting...', data);
+            //     // fetch('/api/login', { method: 'POST', body: JSON.stringify(data), headers: {'Content-Type': 'application/json'} });
+            // }
         });
     </script>
-
+<script src="{{url_for('static',path='js/base.js')}}"></script>
 </body>
 </html>

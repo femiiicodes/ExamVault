@@ -9,7 +9,7 @@ def test_get_pq_details(authenticated_client,sample_pq):
     "level": '300',
     "course": "EIE525",
     "file_path": "uploads/past_questions\EIE346 Examination 2023-2024.pdf",
-    "user_id": 1,
+    "uploader_id": 1,
 }
 
     for key, value in expected.items():

@@ -1,6 +1,6 @@
 from fastapi import FastAPI, APIRouter, Request
 from fastapi.staticfiles import StaticFiles
-from app.routers import pqs, auth, users
+from app.routers import pqs, auth, users, course_management
 from fastapi.templating import Jinja2Templates
 
 
@@ -22,3 +22,4 @@ async def render_landing_page(request:Request):
 app.include_router(pqs.router)
 app.include_router(auth.router)
 app.include_router(users.router)
+app.include_router(course_management.router)

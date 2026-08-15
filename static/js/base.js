@@ -55,3 +55,51 @@ if (registerForm) {
         }
     });
 }
+
+
+// Login
+
+const loginForm = document.getElementById('loginForm');
+
+if (loginForm) {
+
+    loginForm.addEventListener('submit', async function(event) {
+
+        event.preventDefault();
+
+        const form = event.target;
+        const formData = new FormData(form);
+
+        const payload = new URLSearchParams();
+
+        for (const [key, value] of formData.entries()) {
+            payload.append(key, value);
+        }
+
+        try {
+
+            const response = await fetch('/auth/token', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: payload
+            });
+
+            if (response.ok) {
+                window.location.href = '/';
+            }
+
+            else {
+                const errorData = await response.json();
+                alert(`Error: ${errorData.detail}`);
+            }
+
+        }
+
+        catch (error) {
+            console.log('Error:', error);
+            alert('Please try again');
+        }
+    });
+}

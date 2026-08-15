@@ -83,7 +83,7 @@ def sample_user(test_db):
 @pytest.fixture
 def sample_pq(test_db):
     from app.models import Pq
-    pq = Pq(session='23/24',assessment_type='Test 1',department='EIE',level=300,course='EIE525',file_path='uploads/past_questions\EIE346 Examination 2023-2024.pdf',time_created=datetime.now(),user_id=1)
+    pq = Pq(session='23/24',assessment_type='Test 1',department='EIE',level=300,course='EIE525',file_path='uploads/past_questions\EIE346 Examination 2023-2024.pdf',time_created=datetime.now(),uploader_id=1)
     with open("uploads/past_questions/EIE346 Examination 2023-2024.pdf", "wb") as f:
         f.write(b"dummy")   
     test_db.add(pq)

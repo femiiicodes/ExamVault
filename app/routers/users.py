@@ -36,7 +36,7 @@ class UserUpdate(BaseModel):
 async def get_user_details(user:user_dependency):
     return user
 
-@router.put('/', status_code=204)
+@router.patch('/', status_code=204)
 async def edit_user_details(
     db: db_dependency,
     user: user_dependency,
@@ -82,12 +82,15 @@ async def change_password(
     user.hashed_password = hash_password(new_password)
     db.commit()
 
-@router.delete('/delete-user')
+@router.delete('/delete-user', status_code=204)
 async def delete_user(db:db_dependency,
                       user:user_dependency,
                       id:int):
     if user is None:
         raise HTTPException(status_code=401, detail="User not authenticated")
     user_model = db.query(User).filter(User.id == id).first()
+    if user_model is None:
+        raise HTTPException(status_code=404, detail="User not found")
     db.delete(user_model)
+    # Database cascade will set pqs.uploader_id to NULL for all PQs uploaded by this user
     db.commit()
