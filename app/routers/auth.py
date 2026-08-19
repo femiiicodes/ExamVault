@@ -19,7 +19,7 @@ templates = Jinja2Templates(directory='templates')
 db_dependency = Annotated[Session,Depends(get_db)]
 
 pwd_context = CryptContext(schemes=['bcrypt'],deprecated='auto')
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl='/auth/token')
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl='/auth/token', auto_error=False)
 
 ALGORITHM = 'HS256'
 SECRET_KEY = 'GY8WTFG7FG34F348GVG73FTTGFH8476'
@@ -93,15 +93,23 @@ async def render_resgister_page(request:Request):
 
 
 @router.post('/token')
-async def login_for_access_token(db:db_dependency,form_data= Depends(OAuth2PasswordRequestForm)):
+async def login_for_access_token(request:Request, db:db_dependency,form_data= Depends(OAuth2PasswordRequestForm),admin: str | None = Form(None)):
     user = authenticate_user(db,form_data.username,form_data.password)
     if user is None:
         raise HTTPException(status_code=401,detail='Incorrect Email or Password')
+
+    is_admin_toggle = admin == 'true'
+    user_is_admin = user.role == 'admin'
+
+    if is_admin_toggle and not user_is_admin:
+        raise HTTPException(status_code=403,detail='You do not have admin privileges')
+
     access_token = create_access_token({'sub':user.email},expires_delta=timedelta(minutes=30))
-    # return {'access_token':token,
-    #         'token_type':'bearer'}
     response = JSONResponse(content={
-        'detail':'Login successful'
+        'detail':'Login successful',
+        'access_token': access_token,
+        'token_type': 'bearer',
+        'is_admin': user_is_admin
     })
     response.set_cookie(
         key='access_token',
@@ -109,13 +117,18 @@ async def login_for_access_token(db:db_dependency,form_data= Depends(OAuth2Passw
         httponly=True,
         samesite='lax',
         max_age=2592000,
-        secure=True
+        secure=request.url.scheme == 'https'
     )
+    return response
 
 
 
-async def get_current_user(db:db_dependency,token = Depends(oauth2_scheme)):
+async def get_current_user(request:Request, db:db_dependency,token = Depends(oauth2_scheme)):
     credential_exception = HTTPException(status_code=401,detail='Unable to validate credentials')
+    token = token or request.cookies.get('access_token')
+    if token is None:
+        raise credential_exception
+
     try:
         payload = jwt.decode(token,key=SECRET_KEY,algorithms=[ALGORITHM])
         email: str = payload.get('sub')

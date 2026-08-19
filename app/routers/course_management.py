@@ -163,6 +163,10 @@ class CollegeResponse(BaseModel):
     name: str
 
 
+class CollegeWithProgrammesResponse(CollegeResponse):
+    programmes: list[str]
+
+
 class CollegeUpdate(BaseModel):
     name: str | None = None
 
@@ -181,6 +185,27 @@ class ProgrammeCourseResponse(BaseModel):
     course_id: int
     level: int
     semester: int
+
+
+@router.get('/colleges', response_model=list[CollegeWithProgrammesResponse])
+async def get_colleges(
+    db: db_dependency,
+    user: user_dependency,
+):
+    if user is None:
+        raise HTTPException(status_code=401, detail='User not authenticated')
+    if user.role != 'admin':
+        raise HTTPException(status_code=401, detail='User not authorized')
+
+    colleges = db.query(College).all()
+    return [
+        CollegeWithProgrammesResponse(
+            id=college.id,
+            name=college.name,
+            programmes=[programme.name for programme in college.programmes]
+        )
+        for college in colleges
+    ]
 
 
 @router.post('/colleges', response_model=CollegeResponse, status_code=201)
