@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard — ExamVault</title>
+    <link rel="preconnect" href="https://api.fontshare.com" crossorigin>
+    <link href="https://api.fontshare.com/v2/css?f[]=satoshi@700,500,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', path='css/dashboard.css') }}">
+<base target="_blank">
+</head>
+<body>
+
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="nav-left">
+
+            <a href="/dashboard" class="nav-brand">
+                <svg class="brand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+                    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+                    <line x1="8" y1="7" x2="16" y2="7"/>
+                    <line x1="8" y1="11" x2="14" y2="11"/>
+                </svg>
+                <span class="brand-text">ExamVault</span>
+            </a>
+        </div>
+        <div class="nav-center">
+            <a href="#" class="nav-link">Contact Us</a>
+            <button class="nav-link" id="shareBtn">Share the App</button>
+        </div>
+        <div class="nav-right">
+            <button class="account-btn" id="accountBtn" aria-label="Account">
+                <svg class="account-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                    <circle cx="12" cy="7" r="4"/>
+                </svg>
+            </button>
+            <div class="account-dropdown" id="accountDropdown">
+                <a href="#" class="dropdown-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                    </svg>
+                    Edit User Details
+                </a>
+                <button onclick="logoutUser()" class="dropdown-item" style="background:none;border:none;cursor:pointer;width:100%;text-align:left;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                        <polyline points="16 17 21 12 16 7"/>
+                        <line x1="21" y1="12" x2="9" y2="12"/>
+                    </svg>
+                    Log Out
+                </button>
+                <div class="dropdown-divider"></div>
+                <a href="#" class="dropdown-item dropdown-item--danger">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="3 6 5 6 21 6"/>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                    </svg>
+                    Delete Account
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="dashboard-layout">
+        <!-- Main Content -->
+        <main class="dashboard-main">
+            <h1 class="welcome-heading">Hello, <span class="name-highlight" id="welcomeName">there</span>!</h1>
+
+            <!-- Search + Filter Row -->
+            <div class="search-row">
+                <div class="search-bar">
+                    <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"/>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                    </svg>
+                    <input type="text" placeholder="Search courses, topics, or past questions..." id="searchInput">
+                </div>
+                <button class="filter-btn" id="filterBtn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+                    </svg>
+                    Filter
+                </button>
+            </div>
+
+            <!-- Filter Panel -->
+            <div class="filter-panel" id="filterPanel">
+                <div class="filter-group">
+                    <label>Course</label>
+                    <select id="filterCourse">
+                        <option value="">All Courses</option>
+                        <option value="EIE328">EIE328 — Basic Electronics Laboratory Practical II</option>
+                        <option value="EIE342">EIE342 — Digital Electronics</option>
+                        <option value="EIE345">EIE345 — Analogue Electronics</option>
+                        <option value="GET322">GET322 — Renewable Energy Systems and Technology</option>
+                        <option value="GET323">GET323 — Engineering Economics</option>
+                        <option value="GET340">GET340 — Engineering Mathematics IV</option>
+                        <option value="GET341">GET341 — Engineering Communication, Technical Writing and Presentation</option>
+                        <option value="GET349">GET349 — Student Industrial Work Experience Scheme</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>Assessment Type</label>
+                    <select id="filterType">
+                        <option value="">All Types</option>
+                        <option value="Test 1">Test 1</option>
+                        <option value="Test 2">Test 2</option>
+                        <option value="Examination">Examination</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>Academic Session</label>
+                    <select id="filterSession">
+                        <option value="">All Sessions</option>
+                        <option value="2024/2025">2024/2025</option>
+                        <option value="2023/2024">2023/2024</option>
+                        <option value="2022/2023">2022/2023</option>
+                        <option value="2021/2022">2021/2022</option>
+                        <option value="2020/2021">2020/2021</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Active Filter Chips -->
+            <div class="filter-chips" id="filterChips"></div>
+
+            <!-- Search Results View (hidden by default) -->
+            <div class="results-view" id="resultsView" style="display:none;">
+                <div class="results-header">
+                    <h2 class="results-title" id="resultsTitle">Results</h2>
+                    <span class="results-count" id="resultsCount">0 past questions</span>
+                </div>
+                <div class="results-grid" id="resultsGrid"></div>
+            </div>
+
+            <!-- Preview Modal -->
+            <div class="modal-overlay" id="previewModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;padding:20px;">
+                <div class="modal-card" style="background:white;border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,0.3);width:100%;max-width:1000px;height:95vh;display:flex;flex-direction:column;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;padding:20px;border-bottom:1px solid #f0f0f0;flex-shrink:0;">
+                        <div>
+                            <h2 id="previewTitle" style="margin:0;font-size:20px;font-weight:600;">Preview</h2>
+                            <p id="previewMeta" style="margin:8px 0 0 0;color:#666;font-size:14px;"></p>
+                        </div>
+                        <button onclick="closePreviewModal()" style="background:none;border:none;font-size:24px;cursor:pointer;color:#999;">&times;</button>
+                    </div>
+                    <iframe id="previewFrame" style="flex:1;border:none;background:#f9f9f9;"></iframe>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // ====== BACKEND DATA ======
+        let pastQuestions = [];
+
+        // ====== STATE ======
+        let activeFilters = { course: '', type: '', session: '' };
+        let searchQuery = '';
+
+        // ====== DOM REFS ======
+        const searchInput = document.getElementById('searchInput');
+        const filterBtn = document.getElementById('filterBtn');
+        const filterPanel = document.getElementById('filterPanel');
+        const filterCourse = document.getElementById('filterCourse');
+        const filterType = document.getElementById('filterType');
+        const filterSession = document.getElementById('filterSession');
+        const filterChips = document.getElementById('filterChips');
+        const resultsView = document.getElementById('resultsView');
+        const resultsTitle = document.getElementById('resultsTitle');
+        const resultsCount = document.getElementById('resultsCount');
+        const resultsGrid = document.getElementById('resultsGrid');
+        function escapeHtml(value) {
+            const element = document.createElement('div');
+            element.textContent = value ?? '';
+            return element.innerHTML;
+        }
+
+        async function getErrorMessage(response) {
+            try {
+                const data = await response.json();
+                return data.detail || 'Unable to load dashboard data.';
+            } catch (error) {
+                return 'Unable to load dashboard data.';
+            }
+        }
+
+        async function logoutUser() {
+            try {
+                const response = await fetch('/auth/logout', {
+                    method: 'POST'
+                });
+                if (response.ok) {
+                    window.location.href = '/';
+                }
+            } catch (error) {
+                console.error('Logout error:', error);
+            }
+        }
+
+        async function logoutUser() {
+            try {
+                const response = await fetch('/auth/logout', {
+                    method: 'POST'
+                });
+                if (response.ok) {
+                    window.location.href = '/';
+                }
+            } catch (error) {
+                console.error('Logout error:', error);
+            }
+        }
+
+        function openPreviewModal(pq) {
+            document.getElementById('previewTitle').textContent = pq.course_code + ' — ' + pq.assessment_type;
+            document.getElementById('previewMeta').textContent = pq.course_title + ' · ' + pq.session + ' · Level ' + pq.level;
+            document.getElementById('previewFrame').src = `/pqs/download_file?id=${pq.id}`;
+            document.getElementById('previewModal').style.display = 'flex';
+        }
+
+        function closePreviewModal() {
+            document.getElementById('previewModal').style.display = 'none';
+            document.getElementById('previewFrame').src = '';
+        }
+
+        function populateFilterOptions() {
+            const courses = [...new Map(pastQuestions.map(pq => [pq.course_id, pq])).values()]
+                .sort((first, second) => first.course_code.localeCompare(second.course_code));
+            filterCourse.innerHTML = '<option value="">All Courses</option>';
+            courses.forEach(pq => {
+                const option = document.createElement('option');
+                option.value = pq.course_code;
+                option.textContent = `${pq.course_code} — ${pq.course_title}`;
+                filterCourse.appendChild(option);
+            });
+
+            const sessions = [...new Set(pastQuestions.map(pq => pq.session))].sort().reverse();
+            filterSession.innerHTML = '<option value="">All Sessions</option>';
+            sessions.forEach(session => {
+                const option = document.createElement('option');
+                option.value = session;
+                option.textContent = session;
+                filterSession.appendChild(option);
+            });
+        }
+
+        async function loadDashboardData() {
+            try {
+                const [response, userResponse] = await Promise.all([
+                    fetch('/pqs'),
+                    fetch('/users/show-user-details')
+                ]);
+                if (!response.ok) throw new Error(await getErrorMessage(response));
+                pastQuestions = await response.json();
+                populateFilterOptions();
+                if (userResponse.ok) {
+                    const user = await userResponse.json();
+                    document.getElementById('welcomeName').textContent = user.first_name || 'there';
+                }
+            } catch (error) {
+                resultsView.style.display = 'block';
+                resultsTitle.textContent = 'Past Questions';
+                resultsGrid.innerHTML = `<div class="empty-state"><p>${escapeHtml(error.message)}</p></div>`;
+            }
+        }
+
+        // ====== ACCOUNT DROPDOWN ======
+        const accountBtn = document.getElementById('accountBtn');
+        const accountDropdown = document.getElementById('accountDropdown');
+        accountBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            accountDropdown.classList.toggle('is-open');
+        });
+        document.addEventListener('click', () => accountDropdown.classList.remove('is-open'));
+        accountDropdown.addEventListener('click', (e) => e.stopPropagation());
+
+        // ====== SHARE ======
+        document.getElementById('shareBtn').addEventListener('click', async () => {
+            try {
+                await navigator.share({
+                    title: 'ExamVault',
+                    text: 'Access past questions, organized and searchable. Join ExamVault!',
+                    url: window.location.origin
+                });
+            } catch (err) {}
+        });
+
+        // ====== FILTER PANEL TOGGLE ======
+        filterBtn.addEventListener('click', () => {
+            filterPanel.classList.toggle('is-open');
+        });
+
+        // ====== FILTER CHANGE HANDLERS ======
+        function onFilterChange() {
+            activeFilters.course = filterCourse.value;
+            activeFilters.type = filterType.value;
+            activeFilters.session = filterSession.value;
+            renderChips();
+            renderResults();
+        }
+
+        filterCourse.addEventListener('change', onFilterChange);
+        filterType.addEventListener('change', onFilterChange);
+        filterSession.addEventListener('change', onFilterChange);
+
+        // ====== SEARCH INPUT ======
+        searchInput.addEventListener('input', (e) => {
+            searchQuery = e.target.value.trim().toLowerCase();
+            renderResults();
+        });
+
+        searchInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') renderResults();
+        });
+
+        // ====== RENDER FILTER CHIPS ======
+        function renderChips() {
+            filterChips.innerHTML = '';
+            const chips = [];
+
+            if (activeFilters.course) {
+                const opt = filterCourse.querySelector(`option[value="${activeFilters.course}"]`);
+                chips.push({ key: 'course', label: activeFilters.course, fullLabel: opt ? opt.textContent : activeFilters.course });
+            }
+            if (activeFilters.type) {
+                chips.push({ key: 'type', label: activeFilters.type });
+            }
+            if (activeFilters.session) {
+                chips.push({ key: 'session', label: activeFilters.session });
+            }
+
+            if (chips.length === 0) {
+                filterChips.style.display = 'none';
+                return;
+            }
+
+            filterChips.style.display = 'flex';
+
+            chips.forEach(chip => {
+                const el = document.createElement('span');
+                el.className = 'filter-chip';
+                el.innerHTML = `${chip.label} <button aria-label="Remove filter">&times;</button>`;
+                el.querySelector('button').addEventListener('click', () => {
+                    activeFilters[chip.key] = '';
+                    if (chip.key === 'course') {
+                        filterCourse.value = '';
+                    }
+                    if (chip.key === 'type') filterType.value = '';
+                    if (chip.key === 'session') filterSession.value = '';
+                    renderChips();
+                    renderResults();
+                });
+                filterChips.appendChild(el);
+            });
+
+            // Clear All
+            if (chips.length > 1) {
+                const clear = document.createElement('button');
+                clear.className = 'clear-all-btn';
+                clear.textContent = 'Clear All';
+                clear.addEventListener('click', () => {
+                    activeFilters = { course: '', type: '', session: '' };
+                    filterCourse.value = '';
+                    filterType.value = '';
+                    filterSession.value = '';
+                    renderChips();
+                    renderResults();
+                });
+                filterChips.appendChild(clear);
+            }
+        }
+
+        // ====== RENDER RESULTS ======
+        function renderResults() {
+            const hasSearch = searchQuery.length > 0;
+            const hasFilters = activeFilters.course || activeFilters.type || activeFilters.session;
+
+            if (!hasSearch && !hasFilters) {
+                resultsView.style.display = 'none';
+                filterChips.style.display = 'none';
+                return;
+            }
+
+            resultsView.style.display = 'block';
+
+            let filtered = pastQuestions.filter(pq => {
+                const matchesCourse = !activeFilters.course || pq.course_code === activeFilters.course;
+                const matchesType = !activeFilters.type || pq.assessment_type === activeFilters.type;
+                const matchesSession = !activeFilters.session || pq.session === activeFilters.session;
+                const matchesSearch = !hasSearch ||
+                    pq.course_code.toLowerCase().includes(searchQuery) ||
+                    pq.course_title.toLowerCase().includes(searchQuery) ||
+                    pq.assessment_type.toLowerCase().includes(searchQuery) ||
+                    pq.session.includes(searchQuery);
+                return matchesCourse && matchesType && matchesSession && matchesSearch;
+            });
+
+            // Build title
+            if (activeFilters.course) {
+                const pq = pastQuestions.find(p => p.course_code === activeFilters.course);
+                resultsTitle.textContent = `${activeFilters.course} · ${pq ? pq.course_title : ''}`;
+            } else if (searchQuery) {
+                resultsTitle.textContent = `Search: "${searchQuery}"`;
+            } else {
+                resultsTitle.textContent = 'Past Questions';
+            }
+
+            resultsCount.textContent = `${filtered.length} past question${filtered.length !== 1 ? 's' : ''}`;
+
+            resultsGrid.innerHTML = '';
+            if (filtered.length === 0) {
+                resultsGrid.innerHTML = `
+                    <div class="empty-state">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="11" cy="11" r="8"/>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                        </svg>
+                        <p>No past questions match your filters.</p>
+                        <button class="clear-all-btn" onclick="clearAll()">Clear All Filters</button>
+                    </div>
+                `;
+                return;
+            }
+
+            filtered.forEach(pq => {
+                const card = document.createElement('button');
+                card.className = 'pq-card';
+                card.style.background = 'none';
+                card.style.border = 'none';
+                card.style.cursor = 'pointer';
+                card.style.padding = '0';
+                card.style.textAlign = 'left';
+                card.style.color = 'inherit';
+                card.style.font = 'inherit';
+                card.onclick = () => openPreviewModal(pq);
+                card.innerHTML = `
+                    <div class="pq-card-top">
+                        <span class="pq-course">${escapeHtml(pq.course_code)}</span>
+                        <span class="pq-session">${escapeHtml(pq.session)}</span>
+                    </div>
+                    <h3 class="pq-title">${escapeHtml(pq.course_code)} ${escapeHtml(pq.assessment_type)}</h3>
+                    <p class="pq-subtitle">${escapeHtml(pq.course_title)}</p>
+                    <div class="pq-meta">
+                        <span class="pq-type">${escapeHtml(pq.assessment_type)}</span>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                            <polyline points="14 2 14 8 20 8"/>
+                        </svg>
+                    </div>
+                `;
+                resultsGrid.appendChild(card);
+            });
+        }
+
+        function clearAll() {
+            activeFilters = { course: '', type: '', session: '' };
+            searchQuery = '';
+            searchInput.value = '';
+            filterCourse.value = '';
+            filterType.value = '';
+            filterSession.value = '';
+            renderChips();
+            renderResults();
+        }
+
+        loadDashboardData();
+    </script>
+
+</body>
+</html>

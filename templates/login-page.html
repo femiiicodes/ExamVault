@@ -13,7 +13,7 @@
 
     <!-- Navigation -->
     <nav class="navbar">
-        <a href="index.html" class="nav-brand">
+        <a href="/" class="nav-brand">
             <svg class="brand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
                 <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
@@ -23,8 +23,8 @@
             <span class="brand-text">ExamVault</span>
         </a>
         <div class="nav-links">
-            <a href="index.html" class="nav-link">Home</a>
-            <a href="register.html" class="nav-link nav-link--outline">Register</a>
+            <a href="/" class="nav-link">Home</a>
+            <a href="/auth/register-page" class="nav-link nav-link--outline">Register</a>
         </div>
     </nav>
 
@@ -66,6 +66,17 @@
                     <span class="error-msg" id="passwordError">Password is required</span>
                 </div>
 
+                <!-- Admin Toggle -->
+                <label class="remember-toggle">
+                    <input type="checkbox" id="adminToggle" name="admin">
+                    <span class="check-box">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                    </span>
+                    <span class="remember-label">Sign in as admin</span>
+                </label>
+
                 <!-- Remember Me -->
                 <label class="remember-toggle">
                     <input type="checkbox" id="rememberMe" name="remember">
@@ -84,7 +95,7 @@
             </form>
 
             <div class="login-footer">
-                <p>Don't have an account? <a href="register.html" class="link">Create one</a></p>
+                <p>Don't have an account? <a href="/auth/register-page" class="link">Create one</a></p>
             </div>
         </div>
     </main>
@@ -135,12 +146,32 @@
             showError('passwordError', !password);
             if (!password) valid = false;
 
-            // if (valid) {
-            //     const formData = new FormData(form);
-            //     const data = Object.fromEntries(formData.entries());
-            //     console.log('Login valid! Submitting...', data);
-            //     // fetch('/api/login', { method: 'POST', body: JSON.stringify(data), headers: {'Content-Type': 'application/json'} });
-            // }
+            if (valid) {
+                const formData = new FormData(form);
+                const data = new URLSearchParams(formData);
+                data.set('admin', document.getElementById('adminToggle').checked ? 'true' : 'false');
+
+                fetch('/auth/token', {
+                    method: 'POST',
+                    body: data,
+                    headers: {'Content-Type': 'application/x-www-form-urlencoded'}
+                }).then(response => {
+                    if (response.ok) {
+                        return response.json();
+                    } else {
+                        showError('emailError', true);
+                        showError('passwordError', true);
+                        throw new Error('Login failed');
+                    }
+                }).then(data => {
+                    const isAdmin = document.getElementById('adminToggle').checked;
+                    if (isAdmin && data.is_admin) {
+                        window.location.href = '/admin';
+                    } else {
+                        window.location.href = '/dashboard';
+                    }
+                }).catch(err => console.error('Login error:', err));
+            }
         });
     </script>
 <script src="{{url_for('static',path='js/base.js')}}"></script>

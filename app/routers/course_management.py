@@ -4,7 +4,7 @@ from pydantic import BaseModel, ConfigDict
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.routers.auth import get_current_user
-from app.models import Programme, Course, College, ProgrammeCourse, User
+from app.models import Programme, Course, College, ProgrammeCourse, Pq, User
 
 router = APIRouter(prefix='/course-management', tags=['course-management'])
 
@@ -24,6 +24,18 @@ class ProgrammeResponse(BaseModel):
     college_id: int
 
 
+class ProgrammeCourseDetail(BaseModel):
+    code: str
+    name: str
+    level: int
+    semester: int
+
+
+class ProgrammeWithCoursesResponse(ProgrammeResponse):
+    college_name: str
+    courses: list[ProgrammeCourseDetail]
+
+
 class CourseCreate(BaseModel):
     code: str
     title: str
@@ -34,6 +46,18 @@ class CourseResponse(BaseModel):
     id: int
     code: str
     title: str
+
+
+class CourseAssignmentDetail(BaseModel):
+    programme_id: int
+    programme_name: str
+    level: int
+    semester: int
+
+
+class CourseWithAssignmentsResponse(CourseResponse):
+    college_id: int | None
+    assignments: list[CourseAssignmentDetail]
 
 
 @router.post('/programmes', response_model=ProgrammeResponse, status_code=201)
@@ -92,6 +116,62 @@ class ProgrammeUpdate(BaseModel):
 class CourseUpdate(BaseModel):
     code: str | None = None
     title: str | None = None
+
+
+@router.get('/courses', response_model=list[CourseWithAssignmentsResponse])
+async def get_courses(
+    db: db_dependency,
+    user: user_dependency,
+):
+    if user is None:
+        raise HTTPException(status_code=401, detail='User not authenticated')
+
+    courses = db.query(Course).all()
+    result = []
+    for course in courses:
+        assignments = course.programme_courses
+        college_ids = {assignment.programme.college_id for assignment in assignments}
+        result.append(CourseWithAssignmentsResponse(
+            id=course.id,
+            code=course.code,
+            title=course.title,
+            college_id=next(iter(college_ids), None),
+            assignments=[
+                CourseAssignmentDetail(
+                    programme_id=assignment.programme_id,
+                    programme_name=assignment.programme.name,
+                    level=assignment.level,
+                    semester=assignment.semester,
+                )
+                for assignment in assignments
+            ],
+        ))
+    return result
+
+
+@router.get('/programmes', response_model=list[ProgrammeWithCoursesResponse])
+async def get_programmes(
+    db: db_dependency,
+):
+    programmes = db.query(Programme).all()
+    return [
+        ProgrammeWithCoursesResponse(
+            id=programme.id,
+            name=programme.name,
+            college_id=programme.college_id,
+            college_name=programme.college.name,
+            courses=[
+                ProgrammeCourseDetail(
+                    code=programme_course.course.code,
+                    name=programme_course.course.title,
+                    level=programme_course.level,
+                    semester=programme_course.semester,
+                )
+                for programme_course in programme.programme_courses
+            ],
+        )
+        for programme in programmes
+    ]
 
 
 @router.patch('/programmes', status_code=204)
@@ -163,6 +243,10 @@ class CollegeResponse(BaseModel):
     name: str
 
 
+class CollegeWithProgrammesResponse(CollegeResponse):
+    programmes: list[str]
+
+
 class CollegeUpdate(BaseModel):
     name: str | None = None
 
@@ -181,6 +265,31 @@ class ProgrammeCourseResponse(BaseModel):
     course_id: int
     level: int
     semester: int
+
+
+class CourseAssignmentsUpdate(BaseModel):
+    assignments: list[ProgrammeCourseCreate]
+
+
+@router.get('/colleges', response_model=list[CollegeWithProgrammesResponse])
+async def get_colleges(
+    db: db_dependency,
+    user: user_dependency,
+):
+    if user is None:
+        raise HTTPException(status_code=401, detail='User not authenticated')
+    if user.role != 'admin':
+        raise HTTPException(status_code=401, detail='User not authorized')
+
+    colleges = db.query(College).all()
+    return [
+        CollegeWithProgrammesResponse(
+            id=college.id,
+            name=college.name,
+            programmes=[programme.name for programme in college.programmes]
+        )
+        for college in colleges
+    ]
 
 
 @router.post('/colleges', response_model=CollegeResponse, status_code=201)
@@ -212,6 +321,7 @@ async def edit_college(
     user: user_dependency,
     data: CollegeUpdate,
 ):
+    
     if user is None:
         raise HTTPException(status_code=401, detail='User not authenticated')
     if user.role != 'admin':
@@ -235,6 +345,7 @@ async def create_programme_course(
     db: db_dependency,
     user: user_dependency,
     payload: ProgrammeCourseCreate,
+    
 ):
     if user is None:
         raise HTTPException(status_code=401, detail='User not authenticated')
@@ -268,6 +379,43 @@ async def create_programme_course(
     db.commit()
     db.refresh(pc)
     return pc
+
+
+@router.put('/course-assignments', status_code=204)
+async def replace_course_assignments(
+    course_id: int,
+    db: db_dependency,
+    user: user_dependency,
+    payload: CourseAssignmentsUpdate,
+):
+    if user is None:
+        raise HTTPException(status_code=401, detail='User not authenticated')
+    if user.role != 'admin':
+        raise HTTPException(status_code=401, detail='User not authorized')
+
+    course = db.query(Course).filter(Course.id == course_id).first()
+    if course is None:
+        raise HTTPException(status_code=404, detail='Course not found')
+
+    db.query(ProgrammeCourse).filter(
+        ProgrammeCourse.course_id == course_id
+    ).delete(synchronize_session=False)
+
+    for assignment in payload.assignments:
+        programme = db.query(Programme).filter(
+            Programme.id == assignment.programme_id
+        ).first()
+        if programme is None:
+            raise HTTPException(status_code=404, detail='Programme not found')
+
+        db.add(ProgrammeCourse(
+            programme_id=assignment.programme_id,
+            course_id=course_id,
+            level=assignment.level,
+            semester=assignment.semester,
+        ))
+
+    db.commit()
 
 
 @router.delete('/programmes', status_code=204)
@@ -305,6 +453,9 @@ async def delete_course(
     course = db.query(Course).filter(Course.id == id).first()
     if course is None:
         raise HTTPException(status_code=404, detail='Course not found')
+
+    if db.query(Pq).filter(Pq.course_id == id).first() is not None:
+        raise HTTPException(status_code=409, detail='Cannot delete a course with past questions')
 
     # Database cascade will handle deletion of related programme_courses
     db.delete(course)

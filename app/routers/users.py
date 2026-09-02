@@ -21,7 +21,7 @@ class UserResponse(BaseModel):
     last_name:str
     email:str
     level:str
-    department:str
+    programme_id: int | None = None
     role:str
 
 class UserUpdate(BaseModel):
@@ -29,7 +29,7 @@ class UserUpdate(BaseModel):
     last_name: str | None = None
     email: str | None = None
     level: str | None = None
-    department: str | None = None
+    programme_id: int | None = None
     role: str | None = None
 
 @router.get('/show-user-details',response_model=UserResponse)
@@ -58,8 +58,8 @@ async def edit_user_details(
     if data.level is not None:
         user.level = data.level
 
-    if data.department is not None:
-        user.department = data.department
+    if data.programme_id is not None:
+        user.programme_id = data.programme_id
 
     if data.role is not None:
         user.role = data.role

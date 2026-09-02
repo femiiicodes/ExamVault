@@ -1,0 +1,1080 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Courses — ExamVault Admin</title>
+    <link rel="preconnect" href="https://api.fontshare.com" crossorigin>
+    <link href="https://api.fontshare.com/v2/css?f[]=satoshi@700,500,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', path='css/admin-dashboard.css') }}">
+<base target="_blank">
+</head>
+<body>
+
+    <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+    <div class="toast-container" id="toastContainer"></div>
+
+    <div class="admin-layout">
+        <aside class="admin-sidebar" id="adminSidebar">
+            <div class="sidebar-brand">
+                <a href="/admin" class="brand-link">
+                    <svg class="brand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+                        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+                        <line x1="8" y1="7" x2="16" y2="7"/>
+                        <line x1="8" y1="11" x2="14" y2="11"/>
+                    </svg>
+                    <span class="brand-text">ExamVault</span>
+                </a>
+                <span class="brand-badge">Admin</span>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <span class="nav-section-label">Overview</span>
+                    <a href="/admin" class="nav-item">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="3" width="7" height="7"/>
+                            <rect x="14" y="3" width="7" height="7"/>
+                            <rect x="14" y="14" width="7" height="7"/>
+                            <rect x="3" y="14" width="7" height="7"/>
+                        </svg>
+                        Dashboard Overview
+                    </a>
+                </div>
+                <div class="nav-section">
+                    <span class="nav-section-label">Management</span>
+                    <a href="/admin/pqs" class="nav-item">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                            <polyline points="14 2 14 8 20 8"/>
+                            <line x1="16" y1="13" x2="8" y2="13"/>
+                            <line x1="16" y1="17" x2="8" y2="17"/>
+                            <polyline points="10 9 9 9 8 9"/>
+                        </svg>
+                        Past Questions
+                    </a>
+                    <a href="/admin/courses" class="nav-item active">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+                            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+                        </svg>
+                        Courses
+                    </a>
+                    <a href="/admin/programmes" class="nav-item">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+                            <path d="M6 12v5c0 1.66 4 3 9 3s9-1.34 9-3v-5"/>
+                        </svg>
+                        Programmes
+                    </a>
+                    <a href="/admin/colleges" class="nav-item">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                            <polyline points="9 22 9 12 15 12 15 22"/>
+                        </svg>
+                        Colleges
+                    </a>
+                </div>
+                <div class="nav-section">
+                    <span class="nav-section-label">Account</span>
+                    <button onclick="logoutUser()" class="nav-item" style="background:none;border:none;cursor:pointer;width:100%;text-align:left;padding:0.75rem;display:flex;align-items:center;gap:0.75rem;color:inherit;font-size:inherit;font-family:inherit;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                            <polyline points="16 17 21 12 16 7"/>
+                            <line x1="21" y1="12" x2="9" y2="12"/>
+                        </svg>
+                        Logout
+                    </button>
+                </div>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="admin-mini">
+                    <div class="admin-avatar">AU</div>
+                    <div class="admin-mini-info">
+                        <div class="admin-mini-name">Admin User</div>
+                        <div class="admin-mini-role">Administrator</div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <main class="admin-main">
+            <header class="admin-topbar">
+                <div class="topbar-left">
+                    <button class="sidebar-toggle" onclick="toggleSidebar()" aria-label="Toggle sidebar">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="3" y1="12" x2="21" y2="12"/>
+                            <line x1="3" y1="6" x2="21" y2="6"/>
+                            <line x1="3" y1="18" x2="21" y2="18"/>
+                        </svg>
+                    </button>
+                    <div>
+                        <h1 class="page-title">Courses</h1>
+                        <p class="page-subtitle">Manage academic courses and programme assignments</p>
+                    </div>
+                </div>
+            </header>
+
+            <div class="admin-content">
+                <div class="admin-content-area">
+                    <div class="page-header">
+                        <div class="page-header-left">
+                            <h2 class="page-header-title">Courses</h2>
+                            <p class="page-header-subtitle">Manage courses and their programme associations</p>
+                        </div>
+                        <button class="btn btn-primary" onclick="openCreateModal()">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="12" y1="5" x2="12" y2="19"/>
+                                <line x1="5" y1="12" x2="19" y2="12"/>
+                            </svg>
+                            Create Course
+                        </button>
+                    </div>
+
+                    <div class="college-search">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="11" cy="11" r="8"/>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                        </svg>
+                        <input type="text" id="courseSearchInput" placeholder="Search courses..." oninput="handleCourseSearch()">
+                    </div>
+
+                    <div id="courseTableContainer"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Create Course Modal -->
+    <div class="modal-overlay" id="createCourseModal">
+        <div class="modal-card" style="max-width:560px;">
+            <div class="modal-header">
+                <h3 class="modal-title">Create Course</h3>
+                <button class="modal-close" onclick="closeModal('createCourseModal')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label" for="createCourseCode">Course Code</label>
+                    <input type="text" class="form-input" id="createCourseCode" placeholder="e.g. GET322">
+                    <p class="form-error" id="createCourseCodeError">Course code is required.</p>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="createCourseTitle">Course Title</label>
+                    <input type="text" class="form-input" id="createCourseTitle" placeholder="e.g. Engineering Economics">
+                    <p class="form-error" id="createCourseTitleError">Course title is required.</p>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="createCourseCollege">College</label>
+                    <select class="form-input" id="createCourseCollege" onchange="onCreateCollegeChange()">
+                        <option value="">Select a college</option>
+                    </select>
+                    <p class="form-error" id="createCourseCollegeError">Please select a college.</p>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="createAssignmentType">Who Takes This Course</label>
+                    <select class="form-input" id="createAssignmentType" onchange="onCreateAssignmentTypeChange()">
+                        <option value="">Select assignment type</option>
+                        <option value="departmental">Departmental</option>
+                        <option value="college-wide">College-wide</option>
+                        <option value="custom">Custom</option>
+                    </select>
+                    <p class="form-error" id="createAssignmentTypeError">Please select an assignment type.</p>
+                </div>
+
+                <!-- Departmental -->
+                <div class="assign-section" id="createDeptSection">
+                    <div class="form-group">
+                        <label class="form-label" for="createDeptProgramme">Programme</label>
+                        <select class="form-input" id="createDeptProgramme">
+                            <option value="">Select a programme</option>
+                        </select>
+                        <p class="form-error" id="createDeptProgrammeError">Please select a programme.</p>
+                    </div>
+                    <div class="form-group" style="display:flex;gap:12px;">
+                        <div style="flex:1;">
+                            <label class="form-label" for="createDeptLevel">Level</label>
+                            <select class="form-input" id="createDeptLevel">
+                                <option value="100">100</option>
+                                <option value="200">200</option>
+                                <option value="300" selected>300</option>
+                                <option value="400">400</option>
+                                <option value="500">500</option>
+                            </select>
+                        </div>
+                        <div style="flex:1;">
+                            <label class="form-label" for="createDeptSemester">Semester</label>
+                            <select class="form-input" id="createDeptSemester">
+                                <option value="1" selected>1</option>
+                                <option value="2">2</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- College-wide -->
+                <div class="assign-section" id="createCollegeWideSection">
+                    <label class="form-label">Select Programmes</label>
+                    <div class="assign-list" id="createCollegeWideList"></div>
+                    <p class="form-error" id="createCollegeWideError">Select at least one programme.</p>
+                </div>
+
+                <!-- Custom -->
+                <div class="assign-section" id="createCustomSection">
+                    <label class="form-label">Select Programmes</label>
+                    <div class="assign-list" id="createCustomList"></div>
+                    <p class="form-error" id="createCustomError">Select at least one programme.</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('createCourseModal')">Cancel</button>
+                <button class="btn btn-primary" onclick="submitCreateCourse()">Create Course</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Course Modal -->
+    <div class="modal-overlay" id="editCourseModal">
+        <div class="modal-card" style="max-width:560px;">
+            <div class="modal-header">
+                <h3 class="modal-title">Edit Course</h3>
+                <button class="modal-close" onclick="closeModal('editCourseModal')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label" for="editCourseCode">Course Code</label>
+                    <input type="text" class="form-input" id="editCourseCode" placeholder="e.g. GET322">
+                    <p class="form-error" id="editCourseCodeError">Course code is required.</p>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="editCourseTitle">Course Title</label>
+                    <input type="text" class="form-input" id="editCourseTitle" placeholder="e.g. Engineering Economics">
+                    <p class="form-error" id="editCourseTitleError">Course title is required.</p>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="editCourseCollege">College</label>
+                    <select class="form-input" id="editCourseCollege" onchange="onEditCollegeChange()">
+                        <option value="">Select a college</option>
+                    </select>
+                    <p class="form-error" id="editCourseCollegeError">Please select a college.</p>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="editAssignmentType">Who Takes This Course</label>
+                    <select class="form-input" id="editAssignmentType" onchange="onEditAssignmentTypeChange()">
+                        <option value="">Select assignment type</option>
+                        <option value="departmental">Departmental</option>
+                        <option value="college-wide">College-wide</option>
+                        <option value="custom">Custom</option>
+                    </select>
+                    <p class="form-error" id="editAssignmentTypeError">Please select an assignment type.</p>
+                </div>
+
+                <div class="assign-section" id="editDeptSection">
+                    <div class="form-group">
+                        <label class="form-label" for="editDeptProgramme">Programme</label>
+                        <select class="form-input" id="editDeptProgramme">
+                            <option value="">Select a programme</option>
+                        </select>
+                        <p class="form-error" id="editDeptProgrammeError">Please select a programme.</p>
+                    </div>
+                    <div class="form-group" style="display:flex;gap:12px;">
+                        <div style="flex:1;">
+                            <label class="form-label" for="editDeptLevel">Level</label>
+                            <select class="form-input" id="editDeptLevel">
+                                <option value="100">100</option>
+                                <option value="200">200</option>
+                                <option value="300">300</option>
+                                <option value="400">400</option>
+                                <option value="500">500</option>
+                            </select>
+                        </div>
+                        <div style="flex:1;">
+                            <label class="form-label" for="editDeptSemester">Semester</label>
+                            <select class="form-input" id="editDeptSemester">
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="assign-section" id="editCollegeWideSection">
+                    <label class="form-label">Select Programmes</label>
+                    <div class="assign-list" id="editCollegeWideList"></div>
+                    <p class="form-error" id="editCollegeWideError">Select at least one programme.</p>
+                </div>
+
+                <div class="assign-section" id="editCustomSection">
+                    <label class="form-label">Select Programmes</label>
+                    <div class="assign-list" id="editCustomList"></div>
+                    <p class="form-error" id="editCustomError">Select at least one programme.</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('editCourseModal')">Cancel</button>
+                <button class="btn btn-primary" onclick="submitEditCourse()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- View Course Modal -->
+    <div class="modal-overlay" id="viewCourseModal">
+        <div class="modal-card" style="max-width:520px;">
+            <div class="modal-header">
+                <h3 class="modal-title">Course Details</h3>
+                <button class="modal-close" onclick="closeModal('viewCourseModal')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="view-course-header">
+                    <div class="view-course-code" id="viewCourseCode"></div>
+                    <div class="view-course-title" id="viewCourseTitle"></div>
+                    <div class="view-course-college" id="viewCourseCollege"></div>
+                </div>
+                <div class="view-course-section-title">Programmes Taking This Course</div>
+                <ul class="course-assign-list" id="viewCourseAssignments"></ul>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('viewCourseModal')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ====== SAMPLE DATA ======
+        const colleges = [
+            { id: 1, name: "College of Engineering" },
+            { id: 2, name: "College of Computing and Information Sciences" },
+            { id: 3, name: "College of Management Sciences" },
+            { id: 4, name: "College of Science and Technology" }
+        ];
+
+        const programmes = [
+            { id: 1, name: "Computer Engineering", collegeId: 1 },
+            { id: 2, name: "Electrical Engineering", collegeId: 1 },
+            { id: 3, name: "Mechanical Engineering", collegeId: 1 },
+            { id: 4, name: "Civil Engineering", collegeId: 1 },
+            { id: 5, name: "Computer Science", collegeId: 2 },
+            { id: 6, name: "Information Technology", collegeId: 2 },
+            { id: 7, name: "Business Administration", collegeId: 3 },
+            { id: 8, name: "Accounting", collegeId: 3 },
+            { id: 9, name: "Marketing", collegeId: 3 },
+            { id: 10, name: "Physics", collegeId: 4 },
+            { id: 11, name: "Chemistry", collegeId: 4 },
+            { id: 12, name: "Mathematics", collegeId: 4 }
+        ];
+
+        let courses = [
+            {
+                id: 1, code: "GET322", title: "Engineering Economics", collegeId: 1,
+                assignmentType: "college-wide",
+                assignments: [
+                    { programmeId: 1, level: 300, semester: 1 },
+                    { programmeId: 2, level: 300, semester: 1 },
+                    { programmeId: 3, level: 400, semester: 1 }
+                ]
+            },
+            {
+                id: 2, code: "EIE342", title: "Digital Electronics", collegeId: 1,
+                assignmentType: "college-wide",
+                assignments: [
+                    { programmeId: 1, level: 300, semester: 1 },
+                    { programmeId: 2, level: 300, semester: 1 }
+                ]
+            },
+            {
+                id: 3, code: "EIE345", title: "Analogue Electronics", collegeId: 1,
+                assignmentType: "departmental",
+                assignments: [
+                    { programmeId: 1, level: 300, semester: 1 }
+                ]
+            },
+            {
+                id: 4, code: "GET323", title: "Engineering Management", collegeId: 1,
+                assignmentType: "custom",
+                assignments: [
+                    { programmeId: 1, level: 300, semester: 2 },
+                    { programmeId: 3, level: 400, semester: 2 }
+                ]
+            },
+            {
+                id: 5, code: "CSC301", title: "Data Structures and Algorithms", collegeId: 2,
+                assignmentType: "college-wide",
+                assignments: [
+                    { programmeId: 5, level: 300, semester: 1 },
+                    { programmeId: 6, level: 300, semester: 1 }
+                ]
+            },
+            {
+                id: 6, code: "CSC302", title: "Operating Systems", collegeId: 2,
+                assignmentType: "departmental",
+                assignments: [
+                    { programmeId: 5, level: 300, semester: 1 }
+                ]
+            },
+            {
+                id: 7, code: "BUS301", title: "Organizational Behaviour", collegeId: 3,
+                assignmentType: "college-wide",
+                assignments: [
+                    { programmeId: 7, level: 300, semester: 1 },
+                    { programmeId: 8, level: 300, semester: 1 }
+                ]
+            },
+            {
+                id: 8, code: "PHY301", title: "Quantum Mechanics", collegeId: 4,
+                assignmentType: "departmental",
+                assignments: [
+                    { programmeId: 10, level: 300, semester: 1 }
+                ]
+            }
+        ];
+
+        let nextCourseId = 9;
+        let editingCourseId = null;
+        let courseSearchQuery = '';
+        let isLoadingCourses = false;
+
+        colleges.length = 0;
+        programmes.length = 0;
+        courses.length = 0;
+
+        // ====== HELPERS ======
+        function getCollegeName(id) {
+            const c = colleges.find(x => x.id === id);
+            return c ? c.name : 'Unknown';
+        }
+
+        function getProgrammeName(id) {
+            const p = programmes.find(x => x.id === id);
+            return p ? p.name : 'Unknown';
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        async function getErrorMessage(response) {
+            try {
+                const data = await response.json();
+                return data.detail || 'Something went wrong.';
+            } catch (error) {
+                return 'Something went wrong.';
+            }
+        }
+
+        async function logoutUser() {
+            try {
+                const response = await fetch('/auth/logout', {
+                    method: 'POST'
+                });
+                if (response.ok) {
+                    window.location.href = '/';
+                }
+            } catch (error) {
+                console.error('Logout error:', error);
+            }
+        }
+
+        async function loadCourseData() {
+            isLoadingCourses = true;
+            renderCourseTable();
+
+            try {
+                const [collegeResponse, programmeResponse, courseResponse] = await Promise.all([
+                    fetch('/course-management/colleges'),
+                    fetch('/course-management/programmes'),
+                    fetch('/course-management/courses')
+                ]);
+
+                for (const response of [collegeResponse, programmeResponse, courseResponse]) {
+                    if (!response.ok) {
+                        throw new Error(await getErrorMessage(response));
+                    }
+                }
+
+                colleges.length = 0;
+                programmes.length = 0;
+                courses.length = 0;
+
+                colleges.push(...await collegeResponse.json());
+                programmes.push(...(await programmeResponse.json()).map(programme => ({
+                    id: programme.id,
+                    name: programme.name,
+                    collegeId: programme.college_id
+                })));
+                courses.push(...(await courseResponse.json()).map(course => ({
+                    id: course.id,
+                    code: course.code,
+                    title: course.title,
+                    collegeId: course.college_id,
+                    assignments: course.assignments.map(assignment => ({
+                        programmeId: assignment.programme_id,
+                        programmeName: assignment.programme_name,
+                        level: assignment.level,
+                        semester: assignment.semester
+                    }))
+                })));
+            } catch (error) {
+                showToast(error.message, 'error');
+            } finally {
+                isLoadingCourses = false;
+                renderCourseTable();
+            }
+        }
+
+        async function saveCourseAssignments(courseId, assignments) {
+            const response = await fetch('/course-management/course-assignments?course_id=' + courseId, {
+                method: 'PUT',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    assignments: assignments.map(assignment => ({
+                        programme_id: assignment.programmeId,
+                        course_id: courseId,
+                        level: assignment.level,
+                        semester: assignment.semester
+                    }))
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(await getErrorMessage(response));
+            }
+        }
+
+        // ====== TOAST ======
+        function showToast(message, type) {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = 'toast toast-' + type;
+            const icon = type === 'success'
+                ? '<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'
+                : '<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>';
+            toast.innerHTML = icon + '<span>' + message + '</span>';
+            container.appendChild(toast);
+            setTimeout(() => { toast.classList.add('toast-out'); toast.addEventListener('animationend', () => toast.remove()); }, 3000);
+        }
+
+        // ====== MOBILE SIDEBAR ======
+        function toggleSidebar() {
+            document.getElementById('adminSidebar').classList.toggle('is-open');
+            document.getElementById('sidebarBackdrop').classList.toggle('is-visible');
+        }
+
+        // ====== MODALS ======
+        function openModal(id) {
+            document.getElementById(id).classList.add('is-open');
+            document.body.style.overflow = 'hidden';
+        }
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('is-open');
+            document.body.style.overflow = '';
+            document.querySelectorAll('#' + id + ' .form-input').forEach(el => el.classList.remove('is-error'));
+            document.querySelectorAll('#' + id + ' .form-error').forEach(el => el.classList.remove('is-visible'));
+        }
+        document.querySelectorAll('.modal-overlay').forEach(o => {
+            o.addEventListener('click', e => { if (e.target === o) { o.classList.remove('is-open'); document.body.style.overflow = ''; } });
+        });
+
+        // ====== DROPDOWNS ======
+        function populateCollegeDropdown(selectId, selectedId) {
+            const sel = document.getElementById(selectId);
+            sel.innerHTML = '<option value="">Select a college</option>';
+            colleges.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c.id;
+                opt.textContent = c.name;
+                if (selectedId && c.id === selectedId) opt.selected = true;
+                sel.appendChild(opt);
+            });
+        }
+
+        function populateProgrammeDropdown(selectId, collegeId, selectedId) {
+            const sel = document.getElementById(selectId);
+            sel.innerHTML = '<option value="">Select a programme</option>';
+            const filtered = collegeId ? programmes.filter(p => p.collegeId === collegeId) : programmes;
+            filtered.forEach(p => {
+                const opt = document.createElement('option');
+                opt.value = p.id;
+                opt.textContent = p.name;
+                if (selectedId && p.id === selectedId) opt.selected = true;
+                sel.appendChild(opt);
+            });
+        }
+
+        // ====== ASSIGNMENT UI ======
+        function renderCheckboxList(containerId, programmeList, prefix, existingAssignments) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+            programmeList.forEach(p => {
+                const existing = existingAssignments ? existingAssignments.find(a => a.programmeId === p.id) : null;
+                const checked = existing ? 'checked' : '';
+                const level = existing ? existing.level : 300;
+                const semester = existing ? existing.semester : 1;
+
+                const row = document.createElement('div');
+                row.className = 'assign-row';
+                row.innerHTML = `
+                    <input type="checkbox" class="assign-row-checkbox" id="${prefix}_prog_${p.id}" value="${p.id}" ${checked}>
+                    <label for="${prefix}_prog_${p.id}" class="assign-row-name">${escapeHtml(p.name)}</label>
+                    <div class="assign-row-meta">
+                        <label>Level</label>
+                        <select id="${prefix}_level_${p.id}">
+                            <option value="100" ${level===100?'selected':''}>100</option>
+                            <option value="200" ${level===200?'selected':''}>200</option>
+                            <option value="300" ${level===300?'selected':''}>300</option>
+                            <option value="400" ${level===400?'selected':''}>400</option>
+                            <option value="500" ${level===500?'selected':''}>500</option>
+                        </select>
+                        <label>Sem</label>
+                        <select id="${prefix}_sem_${p.id}">
+                            <option value="1" ${semester===1?'selected':''}>1</option>
+                            <option value="2" ${semester===2?'selected':''}>2</option>
+                        </select>
+                    </div>
+                `;
+                container.appendChild(row);
+            });
+        }
+
+        function showAssignmentSection(prefix, type) {
+            ['Dept', 'CollegeWide', 'Custom'].forEach(t => {
+                const el = document.getElementById(prefix + t + 'Section');
+                if (el) el.classList.remove('is-visible');
+            });
+            if (type === 'departmental') {
+                document.getElementById(prefix + 'DeptSection').classList.add('is-visible');
+            } else if (type === 'college-wide') {
+                document.getElementById(prefix + 'CollegeWideSection').classList.add('is-visible');
+            } else if (type === 'custom') {
+                document.getElementById(prefix + 'CustomSection').classList.add('is-visible');
+            }
+        }
+
+        // ====== CREATE FORM ======
+        function openCreateModal() {
+            editingCourseId = null;
+            populateCollegeDropdown('createCourseCollege', null);
+            document.getElementById('createCourseCode').value = '';
+            document.getElementById('createCourseTitle').value = '';
+            document.getElementById('createAssignmentType').value = '';
+            document.getElementById('createDeptProgramme').innerHTML = '<option value="">Select a programme</option>';
+            showAssignmentSection('create', '');
+            openModal('createCourseModal');
+        }
+
+        function onCreateCollegeChange() {
+            const collegeId = parseInt(document.getElementById('createCourseCollege').value);
+            const type = document.getElementById('createAssignmentType').value;
+            if (type === 'departmental') {
+                populateProgrammeDropdown('createDeptProgramme', collegeId, null);
+            } else if (type === 'college-wide') {
+                const list = collegeId ? programmes.filter(p => p.collegeId === collegeId) : [];
+                renderCheckboxList('createCollegeWideList', list, 'create_cw', null);
+            }
+        }
+
+        function onCreateAssignmentTypeChange() {
+            const type = document.getElementById('createAssignmentType').value;
+            const collegeId = parseInt(document.getElementById('createCourseCollege').value);
+            showAssignmentSection('create', type);
+            if (type === 'departmental') {
+                populateProgrammeDropdown('createDeptProgramme', collegeId, null);
+            } else if (type === 'college-wide') {
+                const list = collegeId ? programmes.filter(p => p.collegeId === collegeId) : [];
+                renderCheckboxList('createCollegeWideList', list, 'create_cw', null);
+            } else if (type === 'custom') {
+                renderCheckboxList('createCustomList', programmes, 'create_cust', null);
+            }
+        }
+
+        async function submitCreateCourse() {
+            const codeInput = document.getElementById('createCourseCode');
+            const titleInput = document.getElementById('createCourseTitle');
+            const collegeSelect = document.getElementById('createCourseCollege');
+            const typeSelect = document.getElementById('createAssignmentType');
+
+            const code = codeInput.value.trim();
+            const title = titleInput.value.trim();
+            const collegeId = parseInt(collegeSelect.value);
+            const type = typeSelect.value;
+
+            let hasError = false;
+
+            if (!code) { codeInput.classList.add('is-error'); document.getElementById('createCourseCodeError').classList.add('is-visible'); hasError = true; }
+            else { codeInput.classList.remove('is-error'); document.getElementById('createCourseCodeError').classList.remove('is-visible'); }
+
+            if (!title) { titleInput.classList.add('is-error'); document.getElementById('createCourseTitleError').classList.add('is-visible'); hasError = true; }
+            else { titleInput.classList.remove('is-error'); document.getElementById('createCourseTitleError').classList.remove('is-visible'); }
+
+            if (!collegeId) { collegeSelect.classList.add('is-error'); document.getElementById('createCourseCollegeError').classList.add('is-visible'); hasError = true; }
+            else { collegeSelect.classList.remove('is-error'); document.getElementById('createCourseCollegeError').classList.remove('is-visible'); }
+
+            if (!type) { typeSelect.classList.add('is-error'); document.getElementById('createAssignmentTypeError').classList.add('is-visible'); hasError = true; }
+            else { typeSelect.classList.remove('is-error'); document.getElementById('createAssignmentTypeError').classList.remove('is-visible'); }
+
+            let assignments = [];
+
+            if (type === 'departmental') {
+                const progSelect = document.getElementById('createDeptProgramme');
+                const progId = parseInt(progSelect.value);
+                const level = parseInt(document.getElementById('createDeptLevel').value);
+                const semester = parseInt(document.getElementById('createDeptSemester').value);
+                if (!progId) { progSelect.classList.add('is-error'); document.getElementById('createDeptProgrammeError').classList.add('is-visible'); hasError = true; }
+                else { progSelect.classList.remove('is-error'); document.getElementById('createDeptProgrammeError').classList.remove('is-visible'); assignments.push({ programmeId: progId, level, semester }); }
+            } else if (type === 'college-wide') {
+                const checked = document.querySelectorAll('#createCollegeWideList input[type="checkbox"]:checked');
+                if (checked.length === 0) { document.getElementById('createCollegeWideError').classList.add('is-visible'); hasError = true; }
+                else {
+                    document.getElementById('createCollegeWideError').classList.remove('is-visible');
+                    checked.forEach(cb => {
+                        const pid = parseInt(cb.value);
+                        const level = parseInt(document.getElementById('create_cw_level_' + pid).value);
+                        const semester = parseInt(document.getElementById('create_cw_sem_' + pid).value);
+                        assignments.push({ programmeId: pid, level, semester });
+                    });
+                }
+            } else if (type === 'custom') {
+                const checked = document.querySelectorAll('#createCustomList input[type="checkbox"]:checked');
+                if (checked.length === 0) { document.getElementById('createCustomError').classList.add('is-visible'); hasError = true; }
+                else {
+                    document.getElementById('createCustomError').classList.remove('is-visible');
+                    checked.forEach(cb => {
+                        const pid = parseInt(cb.value);
+                        const level = parseInt(document.getElementById('create_cust_level_' + pid).value);
+                        const semester = parseInt(document.getElementById('create_cust_sem_' + pid).value);
+                        assignments.push({ programmeId: pid, level, semester });
+                    });
+                }
+            }
+
+            if (hasError) return;
+
+            try {
+                const response = await fetch('/course-management/courses', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({code: code, title: title})
+                });
+
+                if (!response.ok) {
+                    throw new Error(await getErrorMessage(response));
+                }
+
+                const course = await response.json();
+                await saveCourseAssignments(course.id, assignments);
+                closeModal('createCourseModal');
+                showToast('Course created successfully.', 'success');
+                await loadCourseData();
+            } catch (error) {
+                showToast(error.message, 'error');
+            }
+        }
+
+        // ====== EDIT FORM ======
+        function openEditModal(id) {
+            const course = courses.find(c => c.id === id);
+            if (!course) return;
+            editingCourseId = id;
+
+            populateCollegeDropdown('editCourseCollege', course.collegeId);
+            document.getElementById('editCourseCode').value = course.code;
+            document.getElementById('editCourseTitle').value = course.title;
+            document.getElementById('editAssignmentType').value = course.assignmentType;
+
+            showAssignmentSection('edit', course.assignmentType);
+
+            if (course.assignmentType === 'departmental') {
+                populateProgrammeDropdown('editDeptProgramme', course.collegeId, course.assignments[0]?.programmeId);
+                document.getElementById('editDeptLevel').value = course.assignments[0]?.level || 300;
+                document.getElementById('editDeptSemester').value = course.assignments[0]?.semester || 1;
+            } else if (course.assignmentType === 'college-wide') {
+                const list = programmes.filter(p => p.collegeId === course.collegeId);
+                renderCheckboxList('editCollegeWideList', list, 'edit_cw', course.assignments);
+            } else if (course.assignmentType === 'custom') {
+                renderCheckboxList('editCustomList', programmes, 'edit_cust', course.assignments);
+            }
+
+            openModal('editCourseModal');
+        }
+
+        function onEditCollegeChange() {
+            const collegeId = parseInt(document.getElementById('editCourseCollege').value);
+            const type = document.getElementById('editAssignmentType').value;
+            if (type === 'departmental') {
+                populateProgrammeDropdown('editDeptProgramme', collegeId, null);
+            } else if (type === 'college-wide') {
+                const list = collegeId ? programmes.filter(p => p.collegeId === collegeId) : [];
+                renderCheckboxList('editCollegeWideList', list, 'edit_cw', null);
+            }
+        }
+
+        function onEditAssignmentTypeChange() {
+            const type = document.getElementById('editAssignmentType').value;
+            const collegeId = parseInt(document.getElementById('editCourseCollege').value);
+            showAssignmentSection('edit', type);
+            if (type === 'departmental') {
+                populateProgrammeDropdown('editDeptProgramme', collegeId, null);
+            } else if (type === 'college-wide') {
+                const list = collegeId ? programmes.filter(p => p.collegeId === collegeId) : [];
+                renderCheckboxList('editCollegeWideList', list, 'edit_cw', null);
+            } else if (type === 'custom') {
+                renderCheckboxList('editCustomList', programmes, 'edit_cust', null);
+            }
+        }
+
+        async function submitEditCourse() {
+            const codeInput = document.getElementById('editCourseCode');
+            const titleInput = document.getElementById('editCourseTitle');
+            const collegeSelect = document.getElementById('editCourseCollege');
+            const typeSelect = document.getElementById('editAssignmentType');
+
+            const code = codeInput.value.trim();
+            const title = titleInput.value.trim();
+            const collegeId = parseInt(collegeSelect.value);
+            const type = typeSelect.value;
+
+            let hasError = false;
+
+            if (!code) { codeInput.classList.add('is-error'); document.getElementById('editCourseCodeError').classList.add('is-visible'); hasError = true; }
+            else { codeInput.classList.remove('is-error'); document.getElementById('editCourseCodeError').classList.remove('is-visible'); }
+
+            if (!title) { titleInput.classList.add('is-error'); document.getElementById('editCourseTitleError').classList.add('is-visible'); hasError = true; }
+            else { titleInput.classList.remove('is-error'); document.getElementById('editCourseTitleError').classList.remove('is-visible'); }
+
+            if (!collegeId) { collegeSelect.classList.add('is-error'); document.getElementById('editCourseCollegeError').classList.add('is-visible'); hasError = true; }
+            else { collegeSelect.classList.remove('is-error'); document.getElementById('editCourseCollegeError').classList.remove('is-visible'); }
+
+            if (!type) { typeSelect.classList.add('is-error'); document.getElementById('editAssignmentTypeError').classList.add('is-visible'); hasError = true; }
+            else { typeSelect.classList.remove('is-error'); document.getElementById('editAssignmentTypeError').classList.remove('is-visible'); }
+
+            let assignments = [];
+
+            if (type === 'departmental') {
+                const progSelect = document.getElementById('editDeptProgramme');
+                const progId = parseInt(progSelect.value);
+                const level = parseInt(document.getElementById('editDeptLevel').value);
+                const semester = parseInt(document.getElementById('editDeptSemester').value);
+                if (!progId) { progSelect.classList.add('is-error'); document.getElementById('editDeptProgrammeError').classList.add('is-visible'); hasError = true; }
+                else { progSelect.classList.remove('is-error'); document.getElementById('editDeptProgrammeError').classList.remove('is-visible'); assignments.push({ programmeId: progId, level, semester }); }
+            } else if (type === 'college-wide') {
+                const checked = document.querySelectorAll('#editCollegeWideList input[type="checkbox"]:checked');
+                if (checked.length === 0) { document.getElementById('editCollegeWideError').classList.add('is-visible'); hasError = true; }
+                else {
+                    document.getElementById('editCollegeWideError').classList.remove('is-visible');
+                    checked.forEach(cb => {
+                        const pid = parseInt(cb.value);
+                        const level = parseInt(document.getElementById('edit_cw_level_' + pid).value);
+                        const semester = parseInt(document.getElementById('edit_cw_sem_' + pid).value);
+                        assignments.push({ programmeId: pid, level, semester });
+                    });
+                }
+            } else if (type === 'custom') {
+                const checked = document.querySelectorAll('#editCustomList input[type="checkbox"]:checked');
+                if (checked.length === 0) { document.getElementById('editCustomError').classList.add('is-visible'); hasError = true; }
+                else {
+                    document.getElementById('editCustomError').classList.remove('is-visible');
+                    checked.forEach(cb => {
+                        const pid = parseInt(cb.value);
+                        const level = parseInt(document.getElementById('edit_cust_level_' + pid).value);
+                        const semester = parseInt(document.getElementById('edit_cust_sem_' + pid).value);
+                        assignments.push({ programmeId: pid, level, semester });
+                    });
+                }
+            }
+
+            if (hasError) return;
+
+            try {
+                const response = await fetch('/course-management/courses?id=' + editingCourseId, {
+                    method: 'PATCH',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({code: code, title: title})
+                });
+
+                if (!response.ok) {
+                    throw new Error(await getErrorMessage(response));
+                }
+
+                await saveCourseAssignments(editingCourseId, assignments);
+                closeModal('editCourseModal');
+                showToast('Course updated successfully.', 'success');
+                await loadCourseData();
+            } catch (error) {
+                showToast(error.message, 'error');
+            }
+        }
+
+        // ====== VIEW ======
+        function openViewModal(id) {
+            const course = courses.find(c => c.id === id);
+            if (!course) return;
+
+            document.getElementById('viewCourseCode').textContent = course.code;
+            document.getElementById('viewCourseTitle').textContent = course.title;
+            document.getElementById('viewCourseCollege').textContent = 'College: ' + getCollegeName(course.collegeId);
+
+            const list = document.getElementById('viewCourseAssignments');
+            if (course.assignments.length === 0) {
+                list.innerHTML = '<li style="color:var(--color-text-muted);font-style:italic;">No programmes assigned to this course.</li>';
+            } else {
+                list.innerHTML = course.assignments.map(a => `
+                    <li>
+                        <span>${escapeHtml(getProgrammeName(a.programmeId))}</span>
+                        <span class="assign-meta">${a.level} Level · Semester ${a.semester}</span>
+                    </li>
+                `).join('');
+            }
+
+            openModal('viewCourseModal');
+        }
+
+        // ====== TABLE ======
+        function getFilteredCourses() {
+            if (!courseSearchQuery.trim()) return courses;
+            const q = courseSearchQuery.toLowerCase();
+            return courses.filter(c =>
+                c.code.toLowerCase().includes(q) ||
+                c.title.toLowerCase().includes(q) ||
+                getCollegeName(c.collegeId).toLowerCase().includes(q)
+            );
+        }
+
+        function handleCourseSearch() {
+            courseSearchQuery = document.getElementById('courseSearchInput').value;
+            renderCourseTable();
+        }
+
+        function renderCourseTable() {
+            const container = document.getElementById('courseTableContainer');
+
+            if (isLoadingCourses) {
+                container.innerHTML = `
+                    <div class="loading-wrap">
+                        <div class="spinner"></div>
+                        <p class="loading-text">Loading courses...</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const filtered = getFilteredCourses();
+
+            if (courses.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+                                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+                            </svg>
+                        </div>
+                        <h3>No Courses Found</h3>
+                        <p>There are no courses in the system yet. Create your first course to get started.</p>
+                        <button class="btn btn-primary" onclick="openCreateModal()" style="margin-top:16px;">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;">
+                                <line x1="12" y1="5" x2="12" y2="19"/>
+                                <line x1="5" y1="12" x2="19" y2="12"/>
+                            </svg>
+                            Create Course
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+
+            if (filtered.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="11" cy="11" r="8"/>
+                                <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                            </svg>
+                        </div>
+                        <h3>No Results</h3>
+                        <p>No courses match your search for "${escapeHtml(courseSearchQuery)}".</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const rows = filtered.map(c => `
+                <tr>
+                    <td>
+                        <span style="font-weight:700;color:var(--color-primary);font-size:0.85rem;">${escapeHtml(c.code)}</span>
+                    </td>
+                    <td class="college-name-cell">${escapeHtml(c.title)}</td>
+                    <td>${escapeHtml(getCollegeName(c.collegeId))}</td>
+                    <td>
+                        <span class="college-programme-count">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+                                <path d="M6 12v5c0 1.66 4 3 9 3s9-1.34 9-3v-5"/>
+                            </svg>
+                            ${c.assignments.length} programme${c.assignments.length !== 1 ? 's' : ''}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="action-btns">
+                            <button class="action-btn" onclick="openViewModal(${c.id})">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                    <circle cx="12" cy="12" r="3"/>
+                                </svg>
+                                View
+                            </button>
+                            <button class="action-btn" onclick="openEditModal(${c.id})">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                                </svg>
+                                Edit
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+
+            container.innerHTML = `
+                <div class="table-wrap">
+                    <table class="college-table">
+                        <thead>
+                            <tr>
+                                <th>Code</th>
+                                <th>Title</th>
+                                <th>College</th>
+                                <th>Programmes</th>
+                                <th style="text-align:right;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${rows}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+        // ====== INIT ======
+        document.addEventListener('DOMContentLoaded', () => {
+            loadCourseData();
+        });
+    </script>
+
+</body>
+</html>

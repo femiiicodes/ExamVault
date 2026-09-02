@@ -19,7 +19,7 @@ templates = Jinja2Templates(directory='templates')
 db_dependency = Annotated[Session,Depends(get_db)]
 
 pwd_context = CryptContext(schemes=['bcrypt'],deprecated='auto')
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl='/auth/token')
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl='/auth/token', auto_error=False)
 
 ALGORITHM = 'HS256'
 SECRET_KEY = 'GY8WTFG7FG34F348GVG73FTTGFH8476'
@@ -59,12 +59,11 @@ def hash_password(password:str):
     
 class UserResponse(BaseModel):
     id: str
-    first_name:str
-    last_name:str
-    email:str
-    level:str
-    department:str
-    role:str
+    first_name: str
+    last_name: str
+    email: str
+    level: str
+    role: str
 
 class Token(BaseModel):
     access_token:str
@@ -72,13 +71,12 @@ class Token(BaseModel):
 
 class UserRequest(BaseModel):
     first_name: str
-    last_name:str
-    email:str
-    level:str
-    department:str
-    role:str
-    college:str
-    password:str
+    last_name: str
+    email: str
+    level: str
+    programme_id: int
+    role: str
+    password: str
 
 
 
@@ -93,15 +91,23 @@ async def render_resgister_page(request:Request):
 
 
 @router.post('/token')
-async def login_for_access_token(db:db_dependency,form_data= Depends(OAuth2PasswordRequestForm)):
+async def login_for_access_token(request:Request, db:db_dependency,form_data= Depends(OAuth2PasswordRequestForm),admin: str | None = Form(None)):
     user = authenticate_user(db,form_data.username,form_data.password)
     if user is None:
         raise HTTPException(status_code=401,detail='Incorrect Email or Password')
+
+    is_admin_toggle = admin == 'true'
+    user_is_admin = user.role == 'admin'
+
+    if is_admin_toggle and not user_is_admin:
+        raise HTTPException(status_code=403,detail='You do not have admin privileges')
+
     access_token = create_access_token({'sub':user.email},expires_delta=timedelta(minutes=30))
-    # return {'access_token':token,
-    #         'token_type':'bearer'}
     response = JSONResponse(content={
-        'detail':'Login successful'
+        'detail':'Login successful',
+        'access_token': access_token,
+        'token_type': 'bearer',
+        'is_admin': user_is_admin
     })
     response.set_cookie(
         key='access_token',
@@ -109,13 +115,18 @@ async def login_for_access_token(db:db_dependency,form_data= Depends(OAuth2Passw
         httponly=True,
         samesite='lax',
         max_age=2592000,
-        secure=True
+        secure=request.url.scheme == 'https'
     )
+    return response
 
 
 
-async def get_current_user(db:db_dependency,token = Depends(oauth2_scheme)):
+async def get_current_user(request:Request, db:db_dependency,token = Depends(oauth2_scheme)):
     credential_exception = HTTPException(status_code=401,detail='Unable to validate credentials')
+    token = token or request.cookies.get('access_token')
+    if token is None:
+        raise credential_exception
+
     try:
         payload = jwt.decode(token,key=SECRET_KEY,algorithms=[ALGORITHM])
         email: str = payload.get('sub')
@@ -130,17 +141,28 @@ async def get_current_user(db:db_dependency,token = Depends(oauth2_scheme)):
 
     return user
 
+@router.post('/logout')
+async def logout():
+    """Clear the auth cookie to log out the user"""
+    response = JSONResponse(content={'detail': 'Logged out successfully'})
+    response.delete_cookie(
+        key='access_token',
+        samesite='lax',
+        secure=False
+    )
+    return response
+
 @router.post('/register',status_code=status.HTTP_201_CREATED)
 async def add_user(db:db_dependency,new_user:UserRequest):
-    new_user = User(first_name=new_user.first_name,
-                    last_name=new_user.last_name,
-                    email=new_user.email,
-                    level=new_user.level,
-                    department=new_user.department,
-                    role=new_user.role,
-                    hashed_password=hash_password(new_user.password))
+    new_user_obj = User(first_name=new_user.first_name,
+                        last_name=new_user.last_name,
+                        email=new_user.email,
+                        level=new_user.level,
+                        programme_id=new_user.programme_id,
+                        role=new_user.role,
+                        hashed_password=hash_password(new_user.password))
 
-    db.add(new_user)
+    db.add(new_user_obj)
     db.commit()
 
 

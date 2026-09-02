@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard — ExamVault</title>
+    <link rel="preconnect" href="https://api.fontshare.com" crossorigin>
+    <link href="https://api.fontshare.com/v2/css?f[]=satoshi@700,500,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', path='css/admin-dashboard.css') }}">
+<base target="_blank">
+</head>
+<body>
+
+    <!-- Mobile sidebar backdrop -->
+    <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+    <div class="admin-layout">
+
+        <!-- Admin Sidebar -->
+        <aside class="admin-sidebar" id="adminSidebar">
+            <div class="sidebar-brand">
+                <a href="/admin" class="brand-link">
+                    <svg class="brand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+                        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+                        <line x1="8" y1="7" x2="16" y2="7"/>
+                        <line x1="8" y1="11" x2="14" y2="11"/>
+                    </svg>
+                    <span class="brand-text">ExamVault</span>
+                </a>
+                <span class="brand-badge">Admin</span>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <span class="nav-section-label">Overview</span>
+                    <button class="nav-item active" data-page="dashboard" onclick="navigateTo('dashboard')">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="3" width="7" height="7"/>
+                            <rect x="14" y="3" width="7" height="7"/>
+                            <rect x="14" y="14" width="7" height="7"/>
+                            <rect x="3" y="14" width="7" height="7"/>
+                        </svg>
+                        Dashboard Overview
+                    </button>
+                </div>
+
+                <div class="nav-section">
+                    <span class="nav-section-label">Management</span>
+                    <button class="nav-item" data-page="past-questions" onclick="window.location.href='/admin/pqs'">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                            <polyline points="14 2 14 8 20 8"/>
+                            <line x1="16" y1="13" x2="8" y2="13"/>
+                            <line x1="16" y1="17" x2="8" y2="17"/>
+                            <polyline points="10 9 9 9 8 9"/>
+                        </svg>
+                        Past Questions
+                    </button>
+                    <button class="nav-item" data-page="courses" onclick="window.location.href='/admin/courses'">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+                            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+                        </svg>
+                        Courses
+                    </button>
+                    <button class="nav-item" data-page="programmes" onclick="window.location.href='/admin/programmes'">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+                            <path d="M6 12v5c0 1.66 4 3 9 3s9-1.34 9-3v-5"/>
+                        </svg>
+                        Programmes
+                    </button>
+                    <button class="nav-item" data-page="colleges" onclick="window.location.href='/admin/colleges'">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                            <polyline points="9 22 9 12 15 12 15 22"/>
+                        </svg>
+                        Colleges
+                    </button>
+                </div>
+
+                <div class="nav-section">
+                    <span class="nav-section-label">Account</span>
+                    <button class="nav-item" onclick="logoutUser()" style="background:none;border:none;cursor:pointer;width:100%;text-align:left;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                            <polyline points="16 17 21 12 16 7"/>
+                            <line x1="21" y1="12" x2="9" y2="12"/>
+                        </svg>
+                        Logout
+                    </button>
+                </div>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="admin-mini">
+                    <div class="admin-avatar">AU</div>
+                    <div class="admin-mini-info">
+                        <div class="admin-mini-name">Admin User</div>
+                        <div class="admin-mini-role">Administrator</div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="admin-main">
+
+            <!-- Top Bar -->
+            <header class="admin-topbar">
+                <div class="topbar-left">
+                    <button class="sidebar-toggle" id="sidebarToggle" onclick="toggleSidebar()" aria-label="Toggle sidebar">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="3" y1="12" x2="21" y2="12"/>
+                            <line x1="3" y1="6" x2="21" y2="6"/>
+                            <line x1="3" y1="18" x2="21" y2="18"/>
+                        </svg>
+                    </button>
+                    <div>
+                        <h1 class="page-title" id="pageTitle">Dashboard Overview</h1>
+                        <p class="page-subtitle" id="pageSubtitle">Welcome back to ExamVault</p>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Content Area -->
+            <div class="admin-content">
+
+                <!-- DASHBOARD OVERVIEW — Fully Implemented -->
+                <div class="page-section active" id="page-dashboard">
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-header">
+                                <div class="stat-icon purple">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                        <polyline points="14 2 14 8 20 8"/>
+                                        <line x1="16" y1="13" x2="8" y2="13"/>
+                                        <line x1="16" y1="17" x2="8" y2="17"/>
+                                        <polyline points="10 9 9 9 8 9"/>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="stat-label">Total Past Questions</div>
+                            <div class="stat-value" id="stat-past-questions">1,284</div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-header">
+                                <div class="stat-icon blue">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+                                        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="stat-label">Total Courses</div>
+                            <div class="stat-value" id="stat-courses">246</div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-header">
+                                <div class="stat-icon green">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+                                        <path d="M6 12v5c0 1.66 4 3 9 3s9-1.34 9-3v-5"/>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="stat-label">Total Programmes</div>
+                            <div class="stat-value" id="stat-programmes">18</div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-header">
+                                <div class="stat-icon orange">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                                        <polyline points="9 22 9 12 15 12 15 22"/>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="stat-label">Total Colleges</div>
+                            <div class="stat-value" id="stat-colleges">6</div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-header">
+                                <div class="stat-icon teal">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                                        <circle cx="12" cy="7" r="4"/>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="stat-label">Total Students</div>
+                            <div class="stat-value" id="stat-students">3,842</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PAST QUESTIONS -->
+                <div class="page-section" id="page-past-questions">
+                    <div class="empty-state">
+                        <div class="empty-state-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                <polyline points="14 2 14 8 20 8"/>
+                                <line x1="16" y1="13" x2="8" y2="13"/>
+                                <line x1="16" y1="17" x2="8" y2="17"/>
+                                <polyline points="10 9 9 9 8 9"/>
+                            </svg>
+                        </div>
+                        <h3>Past Questions</h3>
+                        <p>Manage, view, and organise past examination papers.</p>
+                        <button class="btn btn-primary" onclick="window.location.href='/admin/pqs'" style="margin-top:16px;">
+                            Open Past Questions
+                        </button>
+                    </div>
+                </div>
+
+                <!-- COURSES — Placeholder -->
+                <div class="page-section" id="page-courses">
+                    <div class="empty-state">
+                        <div class="empty-state-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+                                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+                            </svg>
+                        </div>
+                        <h3>Courses</h3>
+                        <p>The Course management interface will be implemented in a future update. This section will allow you to manage courses and their associations with programmes.</p>
+                    </div>
+                </div>
+
+                <!-- PROGRAMMES — Placeholder -->
+                <div class="page-section" id="page-programmes">
+                    <div class="empty-state">
+                        <div class="empty-state-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+                                <path d="M6 12v5c0 1.66 4 3 9 3s9-1.34 9-3v-5"/>
+                            </svg>
+                        </div>
+                        <h3>Programmes</h3>
+                        <p>The Programme management interface will be implemented in a future update. This section will allow you to manage academic programmes and their college affiliations.</p>
+                    </div>
+                </div>
+
+                <!-- COLLEGES — Placeholder -->
+                <div class="page-section" id="page-colleges">
+                    <div class="empty-state">
+                        <div class="empty-state-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                                <polyline points="9 22 9 12 15 12 15 22"/>
+                            </svg>
+                        </div>
+                        <h3>Colleges</h3>
+                        <p>The College management interface will be implemented in a future update. This section will allow you to create and manage colleges and view their associated programmes.</p>
+                    </div>
+                </div>
+
+                <!-- ADMIN PROFILE — Basic Implementation -->
+                <div class="page-section" id="page-settings">
+                    <div class="profile-card">
+                        <div class="profile-header">
+                            <div class="profile-avatar-large">AU</div>
+                            <div class="profile-name">Admin User</div>
+                            <div class="profile-role-badge">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="20 6 9 17 4 12"/>
+                                </svg>
+                                Administrator
+                            </div>
+                        </div>
+                        <div class="profile-body">
+                            <div class="profile-field">
+                                <div class="profile-field-label">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                                        <circle cx="12" cy="7" r="4"/>
+                                    </svg>
+                                    Full Name
+                                </div>
+                                <div class="profile-field-value">Admin User</div>
+                            </div>
+                            <div class="profile-field">
+                                <div class="profile-field-label">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                                        <polyline points="22,6 12,13 2,6"/>
+                                    </svg>
+                                    Email Address
+                                </div>
+                                <div class="profile-field-value">admin@examvault.com</div>
+                            </div>
+                            <div class="profile-field">
+                                <div class="profile-field-label">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                                    </svg>
+                                    Role
+                                </div>
+                                <div class="profile-field-value">Administrator</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // ====== DATABASE DATA ======
+        const dashboardData = {
+            totalPastQuestions: {{ total_past_questions }},
+            totalCourses: {{ total_courses }},
+            totalProgrammes: {{ total_programmes }},
+            totalColleges: {{ total_colleges }},
+            totalStudents: {{ total_students }}
+        };
+
+        const pageConfig = {
+            dashboard: {
+                title: 'Dashboard Overview',
+                subtitle: 'Welcome back to ExamVault'
+            },
+            'past-questions': {
+                title: 'Past Questions',
+                subtitle: 'Manage examination papers and resources'
+            },
+            courses: {
+                title: 'Courses',
+                subtitle: 'Manage academic courses'
+            },
+            programmes: {
+                title: 'Programmes',
+                subtitle: 'Manage academic programmes'
+            },
+            colleges: {
+                title: 'Colleges',
+                subtitle: 'Manage college structures'
+            },
+            settings: {
+                title: 'Admin Profile',
+                subtitle: 'View your account information'
+            }
+        };
+
+        // ====== HELPERS ======
+        function formatNumber(num) {
+            return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        }
+
+        function populateStats() {
+            document.getElementById('stat-past-questions').textContent = formatNumber(dashboardData.totalPastQuestions);
+            document.getElementById('stat-courses').textContent = formatNumber(dashboardData.totalCourses);
+            document.getElementById('stat-programmes').textContent = formatNumber(dashboardData.totalProgrammes);
+            document.getElementById('stat-colleges').textContent = formatNumber(dashboardData.totalColleges);
+            document.getElementById('stat-students').textContent = formatNumber(dashboardData.totalStudents);
+        }
+
+        // ====== LOGOUT ======
+        async function logoutUser() {
+            try {
+                const response = await fetch('/auth/logout', {
+                    method: 'POST'
+                });
+                if (response.ok) {
+                    window.location.href = '/';
+                }
+            } catch (error) {
+                console.error('Logout error:', error);
+            }
+        }
+
+        // ====== NAVIGATION ======
+        function navigateTo(page) {
+            // Update sidebar active state
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+                if (item.dataset.page === page) {
+                    item.classList.add('active');
+                }
+            });
+
+            // Update page title
+            const config = pageConfig[page];
+            document.getElementById('pageTitle').textContent = config.title;
+            document.getElementById('pageSubtitle').textContent = config.subtitle;
+
+            // Show / hide page content
+            document.querySelectorAll('.page-section').forEach(section => {
+                section.classList.remove('active');
+            });
+
+            const target = document.getElementById('page-' + page);
+            if (target) {
+                target.classList.add('active');
+            }
+
+            // Close mobile sidebar
+            closeSidebar();
+
+            // Update URL hash
+            window.location.hash = page;
+        }
+
+        // ====== MOBILE SIDEBAR ======
+        function toggleSidebar() {
+            document.getElementById('adminSidebar').classList.toggle('is-open');
+            document.getElementById('sidebarBackdrop').classList.toggle('is-visible');
+        }
+
+        function closeSidebar() {
+            document.getElementById('adminSidebar').classList.remove('is-open');
+            document.getElementById('sidebarBackdrop').classList.remove('is-visible');
+        }
+
+        // ====== HASH ROUTING ======
+        function handleHash() {
+            const hash = window.location.hash.replace('#', '');
+            if (hash && pageConfig[hash]) {
+                navigateTo(hash);
+            } else {
+                navigateTo('dashboard');
+            }
+        }
+
+        // ====== INIT ======
+        document.addEventListener('DOMContentLoaded', () => {
+            populateStats();
+            handleHash();
+        });
+
+        window.addEventListener('hashchange', handleHash);
+    </script>
+
+</body>
+</html>

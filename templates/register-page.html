@@ -13,7 +13,7 @@
 
     <!-- Navigation -->
     <nav class="navbar">
-        <a href="index.html" class="nav-brand">
+        <a href="/" class="nav-brand">
             <svg class="brand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
                 <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
@@ -23,8 +23,8 @@
             <span class="brand-text">ExamVault</span>
         </a>
         <div class="nav-links">
-            <a href="index.html" class="nav-link">Home</a>
-            <a href="login.html" class="nav-link nav-link--outline">Log In</a>
+            <a href="/" class="nav-link">Home</a>
+            <a href="/auth/login-page" class="nav-link nav-link--outline">Log In</a>
         </div>
     </nav>
 
@@ -80,34 +80,27 @@
                     <span class="error-msg" id="levelError">Please select your level</span>
                 </div>
 
-                <!-- Department -->
+                <!-- Programme -->
                 <div class="form-group">
-                    <label for="department">Department</label>
+                    <label for="programme">Programme</label>
                     <div class="select-wrapper">
-                        <select id="department" name="department" required>
-                            <option value="EIE" selected>EIE</option>
+                        <select id="programme" name="programme_id" required>
+                            <option value="" disabled selected>Select your programme</option>
                         </select>
                         <svg class="select-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <polyline points="6 9 12 15 18 9"/>
                         </svg>
                     </div>
+                    <span class="error-msg" id="programmeError">Please select your programme</span>
                 </div>
 
-                <!-- College -->
+                <!-- College (Read-only) -->
                 <div class="form-group">
                     <label for="college">College</label>
-                    <div class="select-wrapper">
-                        <select id="college" name="college" required>
-                            <option value="CoE" selected>CoE</option>
-                            <option value="CMSS" disabled>CMSS</option>
-                            <option value="CST" disabled>CST</option>
-                            <option value="CLDS" disabled>CLDS</option>
-                        </select>
-                        <svg class="select-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <polyline points="6 9 12 15 18 9"/>
-                        </svg>
+                    <div class="input-wrapper">
+                        <input type="text" id="college" name="college" placeholder="Select a programme to see college" readonly>
                     </div>
-                    <span class="field-hint">More colleges coming soon.</span>
+                    <span class="field-hint">Automatically populated based on your programme selection.</span>
                 </div>
 
                 <!-- Password -->
@@ -183,7 +176,7 @@
             </form>
 
             <div class="register-footer">
-                <p>Already have an account? <a href="login.html" class="link">Log in</a></p>
+                <p>Already have an account? <a href="/auth/login-page" class="link">Log in</a></p>
             </div>
         </div>
     </main>
@@ -198,6 +191,40 @@
     </footer>
 
     <script>
+        // Fetch and populate programmes on page load
+        async function loadProgrammes() {
+            try {
+                const response = await fetch('/course-management/programmes');
+                if (!response.ok) throw new Error('Failed to fetch programmes');
+                const programmes = await response.json();
+                
+                const programmeSelect = document.getElementById('programme');
+                programmes.forEach(prog => {
+                    const option = document.createElement('option');
+                    option.value = prog.id;
+                    option.textContent = prog.name;
+                    option.dataset.collegeName = prog.college_name;
+                    programmeSelect.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error loading programmes:', error);
+            }
+        }
+
+        // Populate college field when programme is selected
+        document.getElementById('programme').addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+            const collegeInput = document.getElementById('college');
+            if (selectedOption.value) {
+                collegeInput.value = selectedOption.dataset.collegeName || '';
+            } else {
+                collegeInput.value = '';
+            }
+        });
+
+        // Load programmes when page loads
+        document.addEventListener('DOMContentLoaded', loadProgrammes);
+
         // Admin toggle logic
         const adminToggle = document.getElementById('adminToggle');
         const adminTokenGroup = document.getElementById('adminTokenGroup');
@@ -270,6 +297,11 @@
             const level = document.getElementById('level').value;
             showError('levelError', !level);
             if (!level) valid = false;
+
+            // Programme
+            const programme = document.getElementById('programme').value;
+            showError('programmeError', !programme);
+            if (!programme) valid = false;
 
             // Password
             const password = document.getElementById('password').value;

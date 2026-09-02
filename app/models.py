@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Integer, ForeignKey,DateTime
+from sqlalchemy import Column, String, Integer, ForeignKey, DateTime
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 
@@ -9,12 +9,13 @@ class Pq(Base):
     id = Column(Integer,nullable=False,primary_key=True,index=True,autoincrement=True)
     session = Column(String)
     assessment_type = Column(String)
-    department = Column(String)
     level = Column(String)
-    course = Column(String)
-    file_path = Column(String)
+    course_id = Column(Integer, ForeignKey('courses.id', ondelete='RESTRICT'), nullable=False)
+    file_name = Column(String)
+    file_key = Column(String, nullable=True)
     time_created = Column(DateTime)
     uploader_id = Column(Integer, ForeignKey('users.id'))
+    course = relationship('Course', back_populates='past_questions')
     uploader = relationship('User',back_populates='past_questions')
 
 class User(Base):
@@ -26,8 +27,6 @@ class User(Base):
     last_name = Column(String)
     email = Column(String)
     level = Column(String)
-    department=Column(String)
-    college = Column(String)
     role = Column(String)
     hashed_password = Column(String)
 
@@ -96,6 +95,8 @@ class Course(Base):
         back_populates="course",
         cascade="all, delete-orphan"
     )
+
+    past_questions = relationship("Pq", back_populates="course")
 
 
 class ProgrammeCourse(Base):

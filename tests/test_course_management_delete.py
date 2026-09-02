@@ -106,8 +106,6 @@ def test_delete_programme_sets_user_programme_id_null(authenticated_client, test
         last_name='Doe',
         email='john.doe@test.com',
         level='300',
-        department='CS',
-        college='Test',
         role='student',
         programme_id=programme.id,
         hashed_password=hash_password('password123')
@@ -138,15 +136,24 @@ def test_delete_programme_sets_user_programme_id_null(authenticated_client, test
 
 def test_delete_user_sets_pq_uploader_id_null(authenticated_client, test_db):
     """Test that deleting a user sets pqs.uploader_id to NULL"""
+    college = College(name='Uploader Test College')
+    test_db.add(college)
+    test_db.commit()
+    programme = Programme(name='Uploader Test Programme', college_id=college.id)
+    course = Course(code='EIE525', title='Uploader Test Course')
+    test_db.add_all([programme, course])
+    test_db.commit()
+    test_db.add(ProgrammeCourse(programme_id=programme.id, course_id=course.id, level=400, semester=1))
+    test_db.commit()
+
     # Create user
     user_obj = User(
         first_name='Jane',
         last_name='Smith',
         email='jane.smith@test.com',
         level='400',
-        department='EIE',
-        college='Test',
         role='student',
+        programme_id=programme.id,
         hashed_password=hash_password('password456')
     )
     test_db.add(user_obj)
@@ -156,10 +163,10 @@ def test_delete_user_sets_pq_uploader_id_null(authenticated_client, test_db):
     pq = Pq(
         session='23/24',
         assessment_type='Test',
-        department='EIE',
         level='400',
-        course='EIE525',
-        file_path='uploads/past_questions/test.pdf',
+        course_id=course.id,
+        file_name='EIE525 Test 23-24.pdf',
+        file_key='past-questions/1.pdf',
         time_created=datetime.now(),
         uploader_id=user_obj.id
     )
