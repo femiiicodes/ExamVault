@@ -59,12 +59,11 @@ def hash_password(password:str):
     
 class UserResponse(BaseModel):
     id: str
-    first_name:str
-    last_name:str
-    email:str
-    level:str
-    department:str
-    role:str
+    first_name: str
+    last_name: str
+    email: str
+    level: str
+    role: str
 
 class Token(BaseModel):
     access_token:str
@@ -72,13 +71,12 @@ class Token(BaseModel):
 
 class UserRequest(BaseModel):
     first_name: str
-    last_name:str
-    email:str
-    level:str
-    department:str
-    role:str
-    college:str
-    password:str
+    last_name: str
+    email: str
+    level: str
+    programme_id: int
+    role: str
+    password: str
 
 
 
@@ -143,17 +141,28 @@ async def get_current_user(request:Request, db:db_dependency,token = Depends(oau
 
     return user
 
+@router.post('/logout')
+async def logout():
+    """Clear the auth cookie to log out the user"""
+    response = JSONResponse(content={'detail': 'Logged out successfully'})
+    response.delete_cookie(
+        key='access_token',
+        samesite='lax',
+        secure=False
+    )
+    return response
+
 @router.post('/register',status_code=status.HTTP_201_CREATED)
 async def add_user(db:db_dependency,new_user:UserRequest):
-    new_user = User(first_name=new_user.first_name,
-                    last_name=new_user.last_name,
-                    email=new_user.email,
-                    level=new_user.level,
-                    department=new_user.department,
-                    role=new_user.role,
-                    hashed_password=hash_password(new_user.password))
+    new_user_obj = User(first_name=new_user.first_name,
+                        last_name=new_user.last_name,
+                        email=new_user.email,
+                        level=new_user.level,
+                        programme_id=new_user.programme_id,
+                        role=new_user.role,
+                        hashed_password=hash_password(new_user.password))
 
-    db.add(new_user)
+    db.add(new_user_obj)
     db.commit()
 
 

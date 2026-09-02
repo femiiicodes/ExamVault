@@ -22,8 +22,7 @@ if (registerForm) {
             last_name: data.last_name,
             email: data.email,
             level: data.level,
-            department: data.department,
-            college: data.college,
+            programme_id: parseInt(data.programme_id),
             role: data.role,
             password: data.password
         };

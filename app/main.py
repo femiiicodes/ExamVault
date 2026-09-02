@@ -60,6 +60,33 @@ async def render_colleges_page(request:Request, user:Annotated[User,Depends(get_
 
     return templates.TemplateResponse(request=request,name='colleges.html')
 
+@app.get('/admin/programmes')
+async def render_programmes_page(request:Request, user:Annotated[User,Depends(get_current_user)]=None):
+    if user is None:
+        raise HTTPException(status_code=401,detail='User not authenticated')
+    if user.role != 'admin':
+        raise HTTPException(status_code=403,detail='User not authorized')
+
+    return templates.TemplateResponse(request=request,name='programmes.html')
+
+@app.get('/admin/courses')
+async def render_courses_page(request:Request, user:Annotated[User,Depends(get_current_user)]=None):
+    if user is None:
+        raise HTTPException(status_code=401,detail='User not authenticated')
+    if user.role != 'admin':
+        raise HTTPException(status_code=403,detail='User not authorized')
+
+    return templates.TemplateResponse(request=request,name='courses.html')
+
+@app.get('/admin/pqs')
+async def render_pqs_page(request:Request, user:Annotated[User,Depends(get_current_user)]=None):
+    if user is None:
+        raise HTTPException(status_code=401,detail='User not authenticated')
+    if user.role != 'admin':
+        raise HTTPException(status_code=403,detail='User not authorized')
+
+    return templates.TemplateResponse(request=request,name='pqs.html')
+
 # @app.get('/')
 # async def home():
 #     return {'Hi':'Hello'}

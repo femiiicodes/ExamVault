@@ -6,7 +6,7 @@
     <title>Dashboard — ExamVault</title>
     <link rel="preconnect" href="https://api.fontshare.com" crossorigin>
     <link href="https://api.fontshare.com/v2/css?f[]=satoshi@700,500,400&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="dashboard.css">
+    <link rel="stylesheet" href="{{ url_for('static', path='css/dashboard.css') }}">
 <base target="_blank">
 </head>
 <body>
@@ -14,14 +14,8 @@
     <!-- Navbar -->
     <nav class="navbar">
         <div class="nav-left">
-            <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <line x1="3" y1="12" x2="21" y2="12"/>
-                    <line x1="3" y1="6" x2="21" y2="6"/>
-                    <line x1="3" y1="18" x2="21" y2="18"/>
-                </svg>
-            </button>
-            <a href="dashboard.html" class="nav-brand">
+
+            <a href="/dashboard" class="nav-brand">
                 <svg class="brand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
                     <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
@@ -32,7 +26,6 @@
             </a>
         </div>
         <div class="nav-center">
-            <a href="dashboard.html" class="nav-link nav-link--active">Home</a>
             <a href="#" class="nav-link">Contact Us</a>
             <button class="nav-link" id="shareBtn">Share the App</button>
         </div>
@@ -51,14 +44,14 @@
                     </svg>
                     Edit User Details
                 </a>
-                <a href="login.html" class="dropdown-item">
+                <button onclick="logoutUser()" class="dropdown-item" style="background:none;border:none;cursor:pointer;width:100%;text-align:left;">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
                         <polyline points="16 17 21 12 16 7"/>
                         <line x1="21" y1="12" x2="9" y2="12"/>
                     </svg>
                     Log Out
-                </a>
+                </button>
                 <div class="dropdown-divider"></div>
                 <a href="#" class="dropdown-item dropdown-item--danger">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -71,67 +64,10 @@
         </div>
     </nav>
 
-    <!-- Mobile sidebar backdrop -->
-    <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
-
-    <!-- Dashboard Layout -->
     <div class="dashboard-layout">
-        <!-- Course Sidebar -->
-        <aside class="course-sidebar" id="courseSidebar">
-            <div class="sidebar-header">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
-                </svg>
-                <span>My Courses</span>
-            </div>
-            <nav class="course-list" id="courseList">
-                <a href="#" class="course-item" data-code="EIE328" data-name="Basic Electronics Laboratory Practical II">
-                    <span class="course-code">EIE328</span>
-                    <span class="course-name">Basic Electronics Laboratory Practical II</span>
-                </a>
-                <a href="#" class="course-item" data-code="EIE342" data-name="Digital Electronics">
-                    <span class="course-code">EIE342</span>
-                    <span class="course-name">Digital Electronics</span>
-                </a>
-                <a href="#" class="course-item" data-code="EIE345" data-name="Analogue Electronics">
-                    <span class="course-code">EIE345</span>
-                    <span class="course-name">Analogue Electronics</span>
-                </a>
-                <a href="#" class="course-item" data-code="GET322" data-name="Renewable Energy Systems and Technology">
-                    <span class="course-code">GET322</span>
-                    <span class="course-name">Renewable Energy Systems and Technology</span>
-                </a>
-                <a href="#" class="course-item" data-code="GET323" data-name="Engineering Economics">
-                    <span class="course-code">GET323</span>
-                    <span class="course-name">Engineering Economics</span>
-                </a>
-                <a href="#" class="course-item" data-code="GET340" data-name="Engineering Mathematics IV">
-                    <span class="course-code">GET340</span>
-                    <span class="course-name">Engineering Mathematics IV</span>
-                </a>
-                <a href="#" class="course-item" data-code="GET341" data-name="Engineering Communication, Technical Writing and Presentation">
-                    <span class="course-code">GET341</span>
-                    <span class="course-name">Engineering Communication, Technical Writing and Presentation</span>
-                </a>
-                <a href="#" class="course-item" data-code="GET349" data-name="Student Industrial Work Experience Scheme">
-                    <span class="course-code">GET349</span>
-                    <span class="course-name">Student Industrial Work Experience Scheme</span>
-                </a>
-            </nav>
-            <div class="sidebar-footer">
-                <button class="add-course-btn">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <line x1="12" y1="5" x2="12" y2="19"/>
-                        <line x1="5" y1="12" x2="19" y2="12"/>
-                    </svg>
-                    Add Course
-                </button>
-            </div>
-        </aside>
-
         <!-- Main Content -->
         <main class="dashboard-main">
-            <h1 class="welcome-heading">Hello, <span class="name-highlight">John</span>!</h1>
+            <h1 class="welcome-heading">Hello, <span class="name-highlight" id="welcomeName">there</span>!</h1>
 
             <!-- Search + Filter Row -->
             <div class="search-row">
@@ -191,49 +127,6 @@
             <!-- Active Filter Chips -->
             <div class="filter-chips" id="filterChips"></div>
 
-            <!-- Dashboard Overview (default view) -->
-            <div class="dashboard-view" id="dashboardView">
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-icon">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                                <polyline points="14 2 14 8 20 8"/>
-                                <line x1="16" y1="13" x2="8" y2="13"/>
-                                <line x1="16" y1="17" x2="8" y2="17"/>
-                                <polyline points="10 9 9 9 8 9"/>
-                            </svg>
-                        </div>
-                        <div class="stat-info">
-                            <span class="stat-value">24</span>
-                            <span class="stat-label">Past Papers</span>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
-                            </svg>
-                        </div>
-                        <div class="stat-info">
-                            <span class="stat-value">8</span>
-                            <span class="stat-label">Bookmarks</span>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
-                            </svg>
-                        </div>
-                        <div class="stat-info">
-                            <span class="stat-value">8</span>
-                            <span class="stat-label">Courses</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
             <!-- Search Results View (hidden by default) -->
             <div class="results-view" id="resultsView" style="display:none;">
                 <div class="results-header">
@@ -242,30 +135,26 @@
                 </div>
                 <div class="results-grid" id="resultsGrid"></div>
             </div>
+
+            <!-- Preview Modal -->
+            <div class="modal-overlay" id="previewModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;padding:20px;">
+                <div class="modal-card" style="background:white;border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,0.3);width:100%;max-width:1000px;height:95vh;display:flex;flex-direction:column;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;padding:20px;border-bottom:1px solid #f0f0f0;flex-shrink:0;">
+                        <div>
+                            <h2 id="previewTitle" style="margin:0;font-size:20px;font-weight:600;">Preview</h2>
+                            <p id="previewMeta" style="margin:8px 0 0 0;color:#666;font-size:14px;"></p>
+                        </div>
+                        <button onclick="closePreviewModal()" style="background:none;border:none;font-size:24px;cursor:pointer;color:#999;">&times;</button>
+                    </div>
+                    <iframe id="previewFrame" style="flex:1;border:none;background:#f9f9f9;"></iframe>
+                </div>
+            </div>
         </main>
     </div>
 
     <script>
-        // ====== SAMPLE DATA ======
-        const pastQuestions = [
-            { course: 'EIE342', courseName: 'Digital Electronics', type: 'Test 1', session: '2023/2024' },
-            { course: 'EIE342', courseName: 'Digital Electronics', type: 'Examination', session: '2020/2021' },
-            { course: 'EIE342', courseName: 'Digital Electronics', type: 'Test 2', session: '2022/2023' },
-            { course: 'EIE342', courseName: 'Digital Electronics', type: 'Examination', session: '2024/2025' },
-            { course: 'EIE342', courseName: 'Digital Electronics', type: 'Test 1', session: '2022/2023' },
-            { course: 'EIE328', courseName: 'Basic Electronics Laboratory Practical II', type: 'Test 1', session: '2023/2024' },
-            { course: 'EIE328', courseName: 'Basic Electronics Laboratory Practical II', type: 'Examination', session: '2022/2023' },
-            { course: 'EIE345', courseName: 'Analogue Electronics', type: 'Test 2', session: '2023/2024' },
-            { course: 'EIE345', courseName: 'Analogue Electronics', type: 'Examination', session: '2021/2022' },
-            { course: 'GET322', courseName: 'Renewable Energy Systems and Technology', type: 'Test 1', session: '2024/2025' },
-            { course: 'GET322', courseName: 'Renewable Energy Systems and Technology', type: 'Examination', session: '2023/2024' },
-            { course: 'GET323', courseName: 'Engineering Economics', type: 'Test 1', session: '2023/2024' },
-            { course: 'GET323', courseName: 'Engineering Economics', type: 'Examination', session: '2022/2023' },
-            { course: 'GET340', courseName: 'Engineering Mathematics IV', type: 'Test 2', session: '2024/2025' },
-            { course: 'GET340', courseName: 'Engineering Mathematics IV', type: 'Examination', session: '2023/2024' },
-            { course: 'GET341', courseName: 'Engineering Communication, Technical Writing and Presentation', type: 'Test 1', session: '2023/2024' },
-            { course: 'GET349', courseName: 'Student Industrial Work Experience Scheme', type: 'Test 1', session: '2024/2025' },
-        ];
+        // ====== BACKEND DATA ======
+        let pastQuestions = [];
 
         // ====== STATE ======
         let activeFilters = { course: '', type: '', session: '' };
@@ -279,12 +168,103 @@
         const filterType = document.getElementById('filterType');
         const filterSession = document.getElementById('filterSession');
         const filterChips = document.getElementById('filterChips');
-        const dashboardView = document.getElementById('dashboardView');
         const resultsView = document.getElementById('resultsView');
         const resultsTitle = document.getElementById('resultsTitle');
         const resultsCount = document.getElementById('resultsCount');
         const resultsGrid = document.getElementById('resultsGrid');
-        const courseItems = document.querySelectorAll('.course-item');
+        function escapeHtml(value) {
+            const element = document.createElement('div');
+            element.textContent = value ?? '';
+            return element.innerHTML;
+        }
+
+        async function getErrorMessage(response) {
+            try {
+                const data = await response.json();
+                return data.detail || 'Unable to load dashboard data.';
+            } catch (error) {
+                return 'Unable to load dashboard data.';
+            }
+        }
+
+        async function logoutUser() {
+            try {
+                const response = await fetch('/auth/logout', {
+                    method: 'POST'
+                });
+                if (response.ok) {
+                    window.location.href = '/';
+                }
+            } catch (error) {
+                console.error('Logout error:', error);
+            }
+        }
+
+        async function logoutUser() {
+            try {
+                const response = await fetch('/auth/logout', {
+                    method: 'POST'
+                });
+                if (response.ok) {
+                    window.location.href = '/';
+                }
+            } catch (error) {
+                console.error('Logout error:', error);
+            }
+        }
+
+        function openPreviewModal(pq) {
+            document.getElementById('previewTitle').textContent = pq.course_code + ' — ' + pq.assessment_type;
+            document.getElementById('previewMeta').textContent = pq.course_title + ' · ' + pq.session + ' · Level ' + pq.level;
+            document.getElementById('previewFrame').src = `/pqs/download_file?id=${pq.id}`;
+            document.getElementById('previewModal').style.display = 'flex';
+        }
+
+        function closePreviewModal() {
+            document.getElementById('previewModal').style.display = 'none';
+            document.getElementById('previewFrame').src = '';
+        }
+
+        function populateFilterOptions() {
+            const courses = [...new Map(pastQuestions.map(pq => [pq.course_id, pq])).values()]
+                .sort((first, second) => first.course_code.localeCompare(second.course_code));
+            filterCourse.innerHTML = '<option value="">All Courses</option>';
+            courses.forEach(pq => {
+                const option = document.createElement('option');
+                option.value = pq.course_code;
+                option.textContent = `${pq.course_code} — ${pq.course_title}`;
+                filterCourse.appendChild(option);
+            });
+
+            const sessions = [...new Set(pastQuestions.map(pq => pq.session))].sort().reverse();
+            filterSession.innerHTML = '<option value="">All Sessions</option>';
+            sessions.forEach(session => {
+                const option = document.createElement('option');
+                option.value = session;
+                option.textContent = session;
+                filterSession.appendChild(option);
+            });
+        }
+
+        async function loadDashboardData() {
+            try {
+                const [response, userResponse] = await Promise.all([
+                    fetch('/pqs'),
+                    fetch('/users/show-user-details')
+                ]);
+                if (!response.ok) throw new Error(await getErrorMessage(response));
+                pastQuestions = await response.json();
+                populateFilterOptions();
+                if (userResponse.ok) {
+                    const user = await userResponse.json();
+                    document.getElementById('welcomeName').textContent = user.first_name || 'there';
+                }
+            } catch (error) {
+                resultsView.style.display = 'block';
+                resultsTitle.textContent = 'Past Questions';
+                resultsGrid.innerHTML = `<div class="empty-state"><p>${escapeHtml(error.message)}</p></div>`;
+            }
+        }
 
         // ====== ACCOUNT DROPDOWN ======
         const accountBtn = document.getElementById('accountBtn');
@@ -295,19 +275,6 @@
         });
         document.addEventListener('click', () => accountDropdown.classList.remove('is-open'));
         accountDropdown.addEventListener('click', (e) => e.stopPropagation());
-
-        // ====== MOBILE SIDEBAR ======
-        const sidebarToggle = document.getElementById('sidebarToggle');
-        const courseSidebar = document.getElementById('courseSidebar');
-        const sidebarBackdrop = document.getElementById('sidebarBackdrop');
-        sidebarToggle.addEventListener('click', () => {
-            courseSidebar.classList.toggle('is-open');
-            sidebarBackdrop.classList.toggle('is-visible');
-        });
-        sidebarBackdrop.addEventListener('click', () => {
-            courseSidebar.classList.remove('is-open');
-            sidebarBackdrop.classList.remove('is-visible');
-        });
 
         // ====== SHARE ======
         document.getElementById('shareBtn').addEventListener('click', async () => {
@@ -348,29 +315,6 @@
             if (e.key === 'Enter') renderResults();
         });
 
-        // ====== SIDEBAR COURSE CLICK ======
-        courseItems.forEach(item => {
-            item.addEventListener('click', (e) => {
-                e.preventDefault();
-                const code = item.dataset.code;
-                activeFilters.course = code;
-                filterCourse.value = code;
-
-                // Highlight active course in sidebar
-                courseItems.forEach(c => c.classList.remove('is-active'));
-                item.classList.add('is-active');
-
-                renderChips();
-                renderResults();
-
-                // On mobile, close sidebar after selection
-                if (window.innerWidth <= 900) {
-                    courseSidebar.classList.remove('is-open');
-                    sidebarBackdrop.classList.remove('is-visible');
-                }
-            });
-        });
-
         // ====== RENDER FILTER CHIPS ======
         function renderChips() {
             filterChips.innerHTML = '';
@@ -402,7 +346,6 @@
                     activeFilters[chip.key] = '';
                     if (chip.key === 'course') {
                         filterCourse.value = '';
-                        courseItems.forEach(c => c.classList.remove('is-active'));
                     }
                     if (chip.key === 'type') filterType.value = '';
                     if (chip.key === 'session') filterSession.value = '';
@@ -422,7 +365,6 @@
                     filterCourse.value = '';
                     filterType.value = '';
                     filterSession.value = '';
-                    courseItems.forEach(c => c.classList.remove('is-active'));
                     renderChips();
                     renderResults();
                 });
@@ -436,31 +378,29 @@
             const hasFilters = activeFilters.course || activeFilters.type || activeFilters.session;
 
             if (!hasSearch && !hasFilters) {
-                dashboardView.style.display = 'block';
                 resultsView.style.display = 'none';
                 filterChips.style.display = 'none';
                 return;
             }
 
-            dashboardView.style.display = 'none';
             resultsView.style.display = 'block';
 
             let filtered = pastQuestions.filter(pq => {
-                const matchesCourse = !activeFilters.course || pq.course === activeFilters.course;
-                const matchesType = !activeFilters.type || pq.type === activeFilters.type;
+                const matchesCourse = !activeFilters.course || pq.course_code === activeFilters.course;
+                const matchesType = !activeFilters.type || pq.assessment_type === activeFilters.type;
                 const matchesSession = !activeFilters.session || pq.session === activeFilters.session;
                 const matchesSearch = !hasSearch ||
-                    pq.course.toLowerCase().includes(searchQuery) ||
-                    pq.courseName.toLowerCase().includes(searchQuery) ||
-                    pq.type.toLowerCase().includes(searchQuery) ||
+                    pq.course_code.toLowerCase().includes(searchQuery) ||
+                    pq.course_title.toLowerCase().includes(searchQuery) ||
+                    pq.assessment_type.toLowerCase().includes(searchQuery) ||
                     pq.session.includes(searchQuery);
                 return matchesCourse && matchesType && matchesSession && matchesSearch;
             });
 
             // Build title
             if (activeFilters.course) {
-                const pq = pastQuestions.find(p => p.course === activeFilters.course);
-                resultsTitle.textContent = `${activeFilters.course} · ${pq ? pq.courseName : ''}`;
+                const pq = pastQuestions.find(p => p.course_code === activeFilters.course);
+                resultsTitle.textContent = `${activeFilters.course} · ${pq ? pq.course_title : ''}`;
             } else if (searchQuery) {
                 resultsTitle.textContent = `Search: "${searchQuery}"`;
             } else {
@@ -485,18 +425,25 @@
             }
 
             filtered.forEach(pq => {
-                const card = document.createElement('a');
+                const card = document.createElement('button');
                 card.className = 'pq-card';
-                card.href = '#';
+                card.style.background = 'none';
+                card.style.border = 'none';
+                card.style.cursor = 'pointer';
+                card.style.padding = '0';
+                card.style.textAlign = 'left';
+                card.style.color = 'inherit';
+                card.style.font = 'inherit';
+                card.onclick = () => openPreviewModal(pq);
                 card.innerHTML = `
                     <div class="pq-card-top">
-                        <span class="pq-course">${pq.course}</span>
-                        <span class="pq-session">${pq.session}</span>
+                        <span class="pq-course">${escapeHtml(pq.course_code)}</span>
+                        <span class="pq-session">${escapeHtml(pq.session)}</span>
                     </div>
-                    <h3 class="pq-title">${pq.course} ${pq.type}</h3>
-                    <p class="pq-subtitle">${pq.courseName}</p>
+                    <h3 class="pq-title">${escapeHtml(pq.course_code)} ${escapeHtml(pq.assessment_type)}</h3>
+                    <p class="pq-subtitle">${escapeHtml(pq.course_title)}</p>
                     <div class="pq-meta">
-                        <span class="pq-type">${pq.type}</span>
+                        <span class="pq-type">${escapeHtml(pq.assessment_type)}</span>
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
                             <polyline points="14 2 14 8 20 8"/>
@@ -514,10 +461,11 @@
             filterCourse.value = '';
             filterType.value = '';
             filterSession.value = '';
-            courseItems.forEach(c => c.classList.remove('is-active'));
             renderChips();
             renderResults();
         }
+
+        loadDashboardData();
     </script>
 
 </body>

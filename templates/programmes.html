@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Programmes — ExamVault Admin</title>
+    <link rel="preconnect" href="https://api.fontshare.com" crossorigin>
+    <link href="https://api.fontshare.com/v2/css?f[]=satoshi@700,500,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', path='css/admin-dashboard.css') }}">
+<base target="_blank">
+</head>
+<body>
+
+    <!-- Mobile sidebar backdrop -->
+    <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <div class="admin-layout">
+
+        <!-- Admin Sidebar -->
+        <aside class="admin-sidebar" id="adminSidebar">
+            <div class="sidebar-brand">
+                <a href="/admin" class="brand-link">
+                    <svg class="brand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+                        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+                        <line x1="8" y1="7" x2="16" y2="7"/>
+                        <line x1="8" y1="11" x2="14" y2="11"/>
+                    </svg>
+                    <span class="brand-text">ExamVault</span>
+                </a>
+                <span class="brand-badge">Admin</span>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <span class="nav-section-label">Overview</span>
+                    <a href="/admin" class="nav-item">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="3" width="7" height="7"/>
+                            <rect x="14" y="3" width="7" height="7"/>
+                            <rect x="14" y="14" width="7" height="7"/>
+                            <rect x="3" y="14" width="7" height="7"/>
+                        </svg>
+                        Dashboard Overview
+                    </a>
+                </div>
+
+                <div class="nav-section">
+                    <span class="nav-section-label">Management</span>
+                    <a href="/admin/pqs" class="nav-item">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                            <polyline points="14 2 14 8 20 8"/>
+                            <line x1="16" y1="13" x2="8" y2="13"/>
+                            <line x1="16" y1="17" x2="8" y2="17"/>
+                            <polyline points="10 9 9 9 8 9"/>
+                        </svg>
+                        Past Questions
+                    </a>
+                    <a href="/admin/courses" class="nav-item">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+                            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+                        </svg>
+                        Courses
+                    </a>
+                    <a href="/admin/programmes" class="nav-item active">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+                            <path d="M6 12v5c0 1.66 4 3 9 3s9-1.34 9-3v-5"/>
+                        </svg>
+                        Programmes
+                    </a>
+                    <a href="/admin/colleges" class="nav-item">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                            <polyline points="9 22 9 12 15 12 15 22"/>
+                        </svg>
+                        Colleges
+                    </a>
+                </div>
+
+                <div class="nav-section">
+                    <span class="nav-section-label">Account</span>
+                    <button onclick="logoutUser()" class="nav-item" style="background:none;border:none;cursor:pointer;width:100%;text-align:left;padding:0.75rem;display:flex;align-items:center;gap:0.75rem;color:inherit;font-size:inherit;font-family:inherit;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                            <polyline points="16 17 21 12 16 7"/>
+                            <line x1="21" y1="12" x2="9" y2="12"/>
+                        </svg>
+                        Logout
+                    </button>
+                </div>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="admin-mini">
+                    <div class="admin-avatar">AU</div>
+                    <div class="admin-mini-info">
+                        <div class="admin-mini-name">Admin User</div>
+                        <div class="admin-mini-role">Administrator</div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="admin-main">
+
+            <!-- Top Bar -->
+            <header class="admin-topbar">
+                <div class="topbar-left">
+                    <button class="sidebar-toggle" id="sidebarToggle" onclick="toggleSidebar()" aria-label="Toggle sidebar">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="3" y1="12" x2="21" y2="12"/>
+                            <line x1="3" y1="6" x2="21" y2="6"/>
+                            <line x1="3" y1="18" x2="21" y2="18"/>
+                        </svg>
+                    </button>
+                    <div>
+                        <h1 class="page-title">Programmes</h1>
+                        <p class="page-subtitle">Manage academic programmes and their college affiliations</p>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Content Area -->
+            <div class="admin-content">
+                <div class="admin-content-area">
+
+                    <div class="page-header">
+                        <div class="page-header-left">
+                            <h2 class="page-header-title">Programmes</h2>
+                            <p class="page-header-subtitle">Manage programmes and view their associated courses</p>
+                        </div>
+                        <button class="btn btn-primary" onclick="openCreateModal()">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="12" y1="5" x2="12" y2="19"/>
+                                <line x1="5" y1="12" x2="19" y2="12"/>
+                            </svg>
+                            Create Programme
+                        </button>
+                    </div>
+
+                    <div class="college-search">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="11" cy="11" r="8"/>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                        </svg>
+                        <input type="text" id="programmeSearchInput" placeholder="Search programmes..." oninput="handleProgrammeSearch()">
+                    </div>
+
+                    <div id="programmeTableContainer"></div>
+
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Create Programme Modal -->
+    <div class="modal-overlay" id="createProgrammeModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 class="modal-title">Create Programme</h3>
+                <button class="modal-close" onclick="closeModal('createProgrammeModal')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label" for="createProgrammeName">Programme Name</label>
+                    <input type="text" class="form-input" id="createProgrammeName" placeholder="e.g. Computer Engineering">
+                    <p class="form-error" id="createProgrammeNameError">Programme name is required.</p>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="createProgrammeCollege">College</label>
+                    <select class="form-input" id="createProgrammeCollege">
+                        <option value="">Select a college</option>
+                    </select>
+                    <p class="form-error" id="createProgrammeCollegeError">Please select a college.</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('createProgrammeModal')">Cancel</button>
+                <button class="btn btn-primary" onclick="submitCreateProgramme()">Create Programme</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Programme Modal -->
+    <div class="modal-overlay" id="editProgrammeModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 class="modal-title">Edit Programme</h3>
+                <button class="modal-close" onclick="closeModal('editProgrammeModal')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label" for="editProgrammeName">Programme Name</label>
+                    <input type="text" class="form-input" id="editProgrammeName" placeholder="e.g. Computer Engineering">
+                    <p class="form-error" id="editProgrammeNameError">Programme name is required.</p>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="editProgrammeCollege">College</label>
+                    <select class="form-input" id="editProgrammeCollege">
+                        <option value="">Select a college</option>
+                    </select>
+                    <p class="form-error" id="editProgrammeCollegeError">Please select a college.</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('editProgrammeModal')">Cancel</button>
+                <button class="btn btn-primary" onclick="submitEditProgramme()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- View Programme Modal -->
+    <div class="modal-overlay" id="viewProgrammeModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 class="modal-title">Programme Details</h3>
+                <button class="modal-close" onclick="closeModal('viewProgrammeModal')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="view-college-name" id="viewProgrammeName"></div>
+                <div class="view-college-meta" id="viewProgrammeCollege"></div>
+                <div class="view-college-section-title">Courses</div>
+                <ul class="programme-list" id="viewProgrammeCourses"></ul>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('viewProgrammeModal')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ====== SAMPLE COLLEGES (for dropdowns) ======
+        const colleges = [
+            { id: 1, name: "College of Engineering" },
+            { id: 2, name: "College of Computing and Information Sciences" },
+            { id: 3, name: "College of Management Sciences" },
+            { id: 4, name: "College of Science and Technology" },
+            { id: 5, name: "College of Leadership Development Studies" }
+        ];
+
+        // ====== SAMPLE PROGRAMMES ======
+        let programmes = [
+            {
+                id: 1,
+                name: "Computer Engineering",
+                collegeId: 1,
+                courses: [
+                    { code: "EIE342", name: "Digital Electronics", level: 300, semester: 1 },
+                    { code: "EIE345", name: "Analogue Electronics", level: 300, semester: 1 },
+                    { code: "GET322", name: "Engineering Economics", level: 300, semester: 1 },
+                    { code: "GET323", name: "Engineering Management", level: 300, semester: 2 },
+                    { code: "EIE328", name: "Basic Electronics Laboratory Practical II", level: 300, semester: 1 },
+                    { code: "GET340", name: "Engineering Mathematics IV", level: 300, semester: 1 }
+                ]
+            },
+            {
+                id: 2,
+                name: "Electrical Engineering",
+                collegeId: 1,
+                courses: [
+                    { code: "EIE342", name: "Digital Electronics", level: 300, semester: 1 },
+                    { code: "GET322", name: "Engineering Economics", level: 300, semester: 1 },
+                    { code: "GET340", name: "Engineering Mathematics IV", level: 300, semester: 1 }
+                ]
+            },
+            {
+                id: 3,
+                name: "Mechanical Engineering",
+                collegeId: 1,
+                courses: [
+                    { code: "GET322", name: "Engineering Economics", level: 300, semester: 1 },
+                    { code: "GET323", name: "Engineering Management", level: 300, semester: 2 }
+                ]
+            },
+            {
+                id: 4,
+                name: "Civil Engineering",
+                collegeId: 1,
+                courses: [
+                    { code: "GET322", name: "Engineering Economics", level: 300, semester: 1 },
+                    { code: "GET341", name: "Engineering Communication, Technical Writing and Presentation", level: 300, semester: 1 }
+                ]
+            },
+            {
+                id: 5,
+                name: "Computer Science",
+                collegeId: 2,
+                courses: [
+                    { code: "CSC301", name: "Data Structures and Algorithms", level: 300, semester: 1 },
+                    { code: "CSC302", name: "Operating Systems", level: 300, semester: 1 },
+                    { code: "CSC303", name: "Database Management Systems", level: 300, semester: 1 },
+                    { code: "CSC304", name: "Software Engineering", level: 300, semester: 2 }
+                ]
+            },
+            {
+                id: 6,
+                name: "Information Technology",
+                collegeId: 2,
+                courses: [
+                    { code: "CSC301", name: "Data Structures and Algorithms", level: 300, semester: 1 },
+                    { code: "CSC303", name: "Database Management Systems", level: 300, semester: 1 }
+                ]
+            },
+            {
+                id: 7,
+                name: "Business Administration",
+                collegeId: 3,
+                courses: [
+                    { code: "BUS301", name: "Organizational Behaviour", level: 300, semester: 1 },
+                    { code: "BUS302", name: "Marketing Management", level: 300, semester: 1 }
+                ]
+            },
+            {
+                id: 8,
+                name: "Accounting",
+                collegeId: 3,
+                courses: [
+                    { code: "ACC301", name: "Financial Accounting III", level: 300, semester: 1 },
+                    { code: "ACC302", name: "Cost Accounting", level: 300, semester: 1 }
+                ]
+            },
+            {
+                id: 9,
+                name: "Physics",
+                collegeId: 4,
+                courses: [
+                    { code: "PHY301", name: "Quantum Mechanics", level: 300, semester: 1 },
+                    { code: "PHY302", name: "Electromagnetism", level: 300, semester: 1 }
+                ]
+            },
+            {
+                id: 10,
+                name: "Chemistry",
+                collegeId: 4,
+                courses: [
+                    { code: "CHM301", name: "Organic Chemistry III", level: 300, semester: 1 }
+                ]
+            }
+        ];
+
+        let nextProgrammeId = 11;
+        let editingProgrammeId = null;
+        let programmeSearchQuery = '';
+        let isLoadingProgrammes = false;
+        colleges.length = 0;
+        programmes = [];
+
+        // ====== TOAST ======
+        function showToast(message, type) {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = 'toast toast-' + type;
+
+            const iconSvg = type === 'success'
+                ? '<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'
+                : '<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>';
+
+            toast.innerHTML = iconSvg + '<span>' + message + '</span>';
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.classList.add('toast-out');
+                toast.addEventListener('animationend', () => toast.remove());
+            }, 3000);
+        }
+
+        // ====== MOBILE SIDEBAR ======
+        function toggleSidebar() {
+            document.getElementById('adminSidebar').classList.toggle('is-open');
+            document.getElementById('sidebarBackdrop').classList.toggle('is-visible');
+        }
+
+        // ====== MODALS ======
+        function openModal(modalId) {
+            document.getElementById(modalId).classList.add('is-open');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('is-open');
+            document.body.style.overflow = '';
+
+            const inputs = document.querySelectorAll('#' + modalId + ' .form-input');
+            const errors = document.querySelectorAll('#' + modalId + ' .form-error');
+            inputs.forEach(input => input.classList.remove('is-error'));
+            errors.forEach(error => error.classList.remove('is-visible'));
+
+            // Don't clear select values on close for edit modal — handled per-modal
+            if (modalId === 'createProgrammeModal') {
+                document.getElementById('createProgrammeName').value = '';
+                document.getElementById('createProgrammeCollege').value = '';
+            }
+        }
+
+        document.querySelectorAll('.modal-overlay').forEach(overlay => {
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) {
+                    overlay.classList.remove('is-open');
+                    document.body.style.overflow = '';
+                }
+            });
+        });
+
+        // ====== COLLEGE DROPDOWN ======
+        function populateCollegeDropdown(selectId, selectedValue) {
+            const select = document.getElementById(selectId);
+            select.innerHTML = '<option value="">Select a college</option>';
+            colleges.forEach(college => {
+                const option = document.createElement('option');
+                option.value = college.id;
+                option.textContent = college.name;
+                if (selectedValue && college.id === selectedValue) {
+                    option.selected = true;
+                }
+                select.appendChild(option);
+            });
+        }
+
+        function getCollegeName(collegeId) {
+            const college = colleges.find(c => c.id === collegeId);
+            return college ? college.name : 'Unknown College';
+        }
+
+        async function getErrorMessage(response) {
+            try {
+                const data = await response.json();
+                return data.detail || 'Something went wrong.';
+            } catch (error) {
+                return 'Something went wrong.';
+            }
+        }
+        async function logoutUser() {
+            try {
+                const response = await fetch('/auth/logout', {
+                    method: 'POST'
+                });
+                if (response.ok) {
+                    window.location.href = '/';
+                }
+            } catch (error) {
+                console.error('Logout error:', error);
+            }
+        }
+        async function loadColleges() {
+            const response = await fetch('/course-management/colleges');
+            if (!response.ok) {
+                throw new Error(await getErrorMessage(response));
+            }
+
+            colleges.push(...await response.json());
+        }
+
+        async function loadProgrammes() {
+            isLoadingProgrammes = true;
+            renderProgrammeTable();
+
+            try {
+                const response = await fetch('/course-management/programmes');
+                if (!response.ok) {
+                    throw new Error(await getErrorMessage(response));
+                }
+
+                programmes = (await response.json()).map(programme => ({
+                    ...programme,
+                    collegeId: programme.college_id
+                }));
+            } catch (error) {
+                showToast(error.message, 'error');
+            } finally {
+                isLoadingProgrammes = false;
+                renderProgrammeTable();
+            }
+        }
+
+        // ====== PROGRAMME TABLE ======
+        function getFilteredProgrammes() {
+            if (!programmeSearchQuery.trim()) return programmes;
+            const q = programmeSearchQuery.toLowerCase();
+            return programmes.filter(p => {
+                const collegeName = getCollegeName(p.collegeId).toLowerCase();
+                return p.name.toLowerCase().includes(q) || collegeName.includes(q);
+            });
+        }
+
+        function handleProgrammeSearch() {
+            programmeSearchQuery = document.getElementById('programmeSearchInput').value;
+            renderProgrammeTable();
+        }
+
+        function renderProgrammeTable() {
+            const container = document.getElementById('programmeTableContainer');
+
+            if (isLoadingProgrammes) {
+                container.innerHTML = `
+                    <div class="loading-wrap">
+                        <div class="spinner"></div>
+                        <p class="loading-text">Loading programmes...</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const filtered = getFilteredProgrammes();
+
+            if (programmes.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+                                <path d="M6 12v5c0 1.66 4 3 9 3s9-1.34 9-3v-5"/>
+                            </svg>
+                        </div>
+                        <h3>No Programmes Found</h3>
+                        <p>There are no programmes in the system yet. Create your first programme to get started.</p>
+                        <button class="btn btn-primary" onclick="openCreateModal()" style="margin-top:16px;">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;">
+                                <line x1="12" y1="5" x2="12" y2="19"/>
+                                <line x1="5" y1="12" x2="19" y2="12"/>
+                            </svg>
+                            Create Programme
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+
+            if (filtered.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="11" cy="11" r="8"/>
+                                <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                            </svg>
+                        </div>
+                        <h3>No Results</h3>
+                        <p>No programmes match your search for "${escapeHtml(programmeSearchQuery)}".</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const rows = filtered.map(prog => `
+                <tr>
+                    <td class="college-name-cell">${escapeHtml(prog.name)}</td>
+                    <td>${escapeHtml(getCollegeName(prog.collegeId))}</td>
+                    <td>
+                        <span class="college-programme-count">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+                                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+                            </svg>
+                            ${prog.courses.length} course${prog.courses.length !== 1 ? 's' : ''}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="action-btns">
+                            <button class="action-btn" onclick="openViewModal(${prog.id})">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                    <circle cx="12" cy="12" r="3"/>
+                                </svg>
+                                View
+                            </button>
+                            <button class="action-btn" onclick="openEditModal(${prog.id})">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                                </svg>
+                                Edit
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+
+            container.innerHTML = `
+                <div class="table-wrap">
+                    <table class="college-table">
+                        <thead>
+                            <tr>
+                                <th>Programme Name</th>
+                                <th>College</th>
+                                <th>Courses</th>
+                                <th style="text-align:right;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${rows}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // ====== CREATE ======
+        function openCreateModal() {
+            editingProgrammeId = null;
+            populateCollegeDropdown('createProgrammeCollege', null);
+            document.getElementById('createProgrammeName').value = '';
+            document.getElementById('createProgrammeName').classList.remove('is-error');
+            document.getElementById('createProgrammeCollege').classList.remove('is-error');
+            document.getElementById('createProgrammeNameError').classList.remove('is-visible');
+            document.getElementById('createProgrammeCollegeError').classList.remove('is-visible');
+            openModal('createProgrammeModal');
+        }
+
+        async function submitCreateProgramme() {
+            const nameInput = document.getElementById('createProgrammeName');
+            const collegeSelect = document.getElementById('createProgrammeCollege');
+            const nameError = document.getElementById('createProgrammeNameError');
+            const collegeError = document.getElementById('createProgrammeCollegeError');
+
+            const name = nameInput.value.trim();
+            const collegeId = parseInt(collegeSelect.value);
+
+            let hasError = false;
+
+            if (!name) {
+                nameInput.classList.add('is-error');
+                nameError.classList.add('is-visible');
+                hasError = true;
+            } else {
+                nameInput.classList.remove('is-error');
+                nameError.classList.remove('is-visible');
+            }
+
+            if (!collegeId) {
+                collegeSelect.classList.add('is-error');
+                collegeError.classList.add('is-visible');
+                hasError = true;
+            } else {
+                collegeSelect.classList.remove('is-error');
+                collegeError.classList.remove('is-visible');
+            }
+
+            if (hasError) return;
+
+            try {
+                const response = await fetch('/course-management/programmes', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({name: name, college_id: collegeId})
+                });
+
+                if (!response.ok) {
+                    throw new Error(await getErrorMessage(response));
+                }
+
+                closeModal('createProgrammeModal');
+                showToast('Programme created successfully.', 'success');
+                await loadProgrammes();
+            } catch (error) {
+                showToast(error.message, 'error');
+            }
+        }
+
+        // ====== EDIT ======
+        function openEditModal(id) {
+            const programme = programmes.find(p => p.id === id);
+            if (!programme) return;
+
+            editingProgrammeId = id;
+            populateCollegeDropdown('editProgrammeCollege', programme.collegeId);
+            document.getElementById('editProgrammeName').value = programme.name;
+            document.getElementById('editProgrammeName').classList.remove('is-error');
+            document.getElementById('editProgrammeCollege').classList.remove('is-error');
+            document.getElementById('editProgrammeNameError').classList.remove('is-visible');
+            document.getElementById('editProgrammeCollegeError').classList.remove('is-visible');
+            openModal('editProgrammeModal');
+        }
+
+        async function submitEditProgramme() {
+            const nameInput = document.getElementById('editProgrammeName');
+            const collegeSelect = document.getElementById('editProgrammeCollege');
+            const nameError = document.getElementById('editProgrammeNameError');
+            const collegeError = document.getElementById('editProgrammeCollegeError');
+
+            const name = nameInput.value.trim();
+            const collegeId = parseInt(collegeSelect.value);
+
+            let hasError = false;
+
+            if (!name) {
+                nameInput.classList.add('is-error');
+                nameError.classList.add('is-visible');
+                hasError = true;
+            } else {
+                nameInput.classList.remove('is-error');
+                nameError.classList.remove('is-visible');
+            }
+
+            if (!collegeId) {
+                collegeSelect.classList.add('is-error');
+                collegeError.classList.add('is-visible');
+                hasError = true;
+            } else {
+                collegeSelect.classList.remove('is-error');
+                collegeError.classList.remove('is-visible');
+            }
+
+            if (hasError) return;
+
+            try {
+                const response = await fetch('/course-management/programmes?id=' + editingProgrammeId, {
+                    method: 'PATCH',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({name: name, college_id: collegeId})
+                });
+
+                if (!response.ok) {
+                    throw new Error(await getErrorMessage(response));
+                }
+
+                closeModal('editProgrammeModal');
+                showToast('Programme updated successfully.', 'success');
+                await loadProgrammes();
+            } catch (error) {
+                showToast(error.message, 'error');
+            }
+        }
+
+        // ====== VIEW ======
+        function openViewModal(id) {
+            const programme = programmes.find(p => p.id === id);
+            if (!programme) return;
+
+            document.getElementById('viewProgrammeName').textContent = programme.name;
+            document.getElementById('viewProgrammeCollege').textContent = 'College: ' + getCollegeName(programme.collegeId);
+
+            const list = document.getElementById('viewProgrammeCourses');
+            if (programme.courses.length === 0) {
+                list.innerHTML = '<li style="color:var(--color-text-muted);font-style:italic;">No courses assigned to this programme.</li>';
+            } else {
+                list.innerHTML = programme.courses.map(c => `
+                    <li>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+                            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+                        </svg>
+                        <span>
+                            <strong>${escapeHtml(c.code)}</strong> — ${escapeHtml(c.name)}
+                            <span style="color:var(--color-text-muted);font-size:0.8rem;margin-left:6px;">(${c.level}L, Sem ${c.semester})</span>
+                        </span>
+                    </li>
+                `).join('');
+            }
+
+            openModal('viewProgrammeModal');
+        }
+
+        // ====== INIT ======
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                await loadColleges();
+                await loadProgrammes();
+            } catch (error) {
+                showToast(error.message, 'error');
+                isLoadingProgrammes = false;
+                renderProgrammeTable();
+            }
+        });
+    </script>
+
+</body>
+</html>

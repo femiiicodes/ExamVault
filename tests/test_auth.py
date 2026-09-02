@@ -25,11 +25,10 @@ def test_protected_route_with_token(client,sample_user,sample_pq):
 
     assert data["session"] == "23/24"
     assert data["assessment_type"] == "Test 1"
-    assert data["department"] == "EIE"
-    assert data["level"] == 300
-    assert data["course"] == "EIE525"
-    assert data["file_path"] == "uploads/past_questions\\EIE346 Examination 2023-2024.pdf"
-    assert data["user_id"] == 1
+    assert data["level"] == "300"
+    assert data["course_code"] == "EIE525"
+    assert data["course_id"] == sample_pq.course_id
+    assert data["uploader"] == "Femi Adewusi"
 
 
 def test_protected_route_with_token(client,sample_user,sample_pq):

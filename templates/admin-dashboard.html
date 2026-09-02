@@ -19,7 +19,7 @@
         <!-- Admin Sidebar -->
         <aside class="admin-sidebar" id="adminSidebar">
             <div class="sidebar-brand">
-                <a href="admin-dashboard.html" class="brand-link">
+                <a href="/admin" class="brand-link">
                     <svg class="brand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
                         <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
@@ -47,7 +47,7 @@
 
                 <div class="nav-section">
                     <span class="nav-section-label">Management</span>
-                    <button class="nav-item" data-page="past-questions" onclick="navigateTo('past-questions')">
+                    <button class="nav-item" data-page="past-questions" onclick="window.location.href='/admin/pqs'">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
                             <polyline points="14 2 14 8 20 8"/>
@@ -57,14 +57,14 @@
                         </svg>
                         Past Questions
                     </button>
-                    <button class="nav-item" data-page="courses" onclick="navigateTo('courses')">
+                    <button class="nav-item" data-page="courses" onclick="window.location.href='/admin/courses'">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
                             <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
                         </svg>
                         Courses
                     </button>
-                    <button class="nav-item" data-page="programmes" onclick="navigateTo('programmes')">
+                    <button class="nav-item" data-page="programmes" onclick="window.location.href='/admin/programmes'">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
                             <path d="M6 12v5c0 1.66 4 3 9 3s9-1.34 9-3v-5"/>
@@ -82,12 +82,13 @@
 
                 <div class="nav-section">
                     <span class="nav-section-label">Account</span>
-                    <button class="nav-item" data-page="settings" onclick="navigateTo('settings')">
+                    <button class="nav-item" onclick="logoutUser()" style="background:none;border:none;cursor:pointer;width:100%;text-align:left;">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                            <circle cx="12" cy="7" r="4"/>
+                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                            <polyline points="16 17 21 12 16 7"/>
+                            <line x1="21" y1="12" x2="9" y2="12"/>
                         </svg>
-                        Admin Profile
+                        Logout
                     </button>
                 </div>
             </nav>
@@ -199,7 +200,7 @@
                     </div>
                 </div>
 
-                <!-- PAST QUESTIONS — Placeholder -->
+                <!-- PAST QUESTIONS -->
                 <div class="page-section" id="page-past-questions">
                     <div class="empty-state">
                         <div class="empty-state-icon">
@@ -212,7 +213,10 @@
                             </svg>
                         </div>
                         <h3>Past Questions</h3>
-                        <p>The Past Question management interface will be implemented in a future update. This section will allow you to create, edit, view, and organise past examination papers.</p>
+                        <p>Manage, view, and organise past examination papers.</p>
+                        <button class="btn btn-primary" onclick="window.location.href='/admin/pqs'" style="margin-top:16px;">
+                            Open Past Questions
+                        </button>
                     </div>
                 </div>
 
@@ -357,6 +361,20 @@
             document.getElementById('stat-programmes').textContent = formatNumber(dashboardData.totalProgrammes);
             document.getElementById('stat-colleges').textContent = formatNumber(dashboardData.totalColleges);
             document.getElementById('stat-students').textContent = formatNumber(dashboardData.totalStudents);
+        }
+
+        // ====== LOGOUT ======
+        async function logoutUser() {
+            try {
+                const response = await fetch('/auth/logout', {
+                    method: 'POST'
+                });
+                if (response.ok) {
+                    window.location.href = '/';
+                }
+            } catch (error) {
+                console.error('Logout error:', error);
+            }
         }
 
         // ====== NAVIGATION ======
