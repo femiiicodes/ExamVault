@@ -1,3 +1,6 @@
+from app.models import User
+
+
 def test_login_success(client,sample_user):
     response = client.post('/auth/token',
                 data={'username':'adefemiadewusi07@gmail.com','password':'Password'})
@@ -35,6 +38,44 @@ def test_protected_route_with_token(client,sample_user,sample_pq):
     response = client.get('/pqs/pq_details',params={'id':1},headers={'Authorization':'Bearer invalid_token'})
     assert response.status_code == 401
     assert response.json() == {'detail': 'Unable to validate credentials'}
+
+
+def test_register_rejects_invalid_admin_token(client, sample_user, monkeypatch):
+    monkeypatch.setenv('ADMIN_KEY', 'test-admin-key')
+    payload = {
+        'first_name': 'New',
+        'last_name': 'User',
+        'email': 'new-user@example.com',
+        'level': '300',
+        'programme_id': sample_user.programme_id,
+        'role': 'user',
+        'password': 'Password',
+        'admin_token': 'wrong-key'
+    }
+
+    response = client.post('/auth/register', json=payload)
+
+    assert response.status_code == 403
+    assert response.json() == {'detail': 'Invalid admin token'}
+
+
+def test_register_accepts_admin_token_from_environment(client, sample_user, test_db, monkeypatch):
+    monkeypatch.setenv('ADMIN_KEY', 'test-admin-key')
+    payload = {
+        'first_name': 'New',
+        'last_name': 'User',
+        'email': 'new-user@example.com',
+        'level': '300',
+        'programme_id': sample_user.programme_id,
+        'role': 'user',
+        'password': 'Password',
+        'admin_token': 'test-admin-key'
+    }
+
+    response = client.post('/auth/register', json=payload)
+
+    assert response.status_code == 201
+    assert test_db.query(User).filter(User.email == payload['email']).one_or_none() is not None
 
 
 

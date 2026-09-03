@@ -24,7 +24,8 @@ if (registerForm) {
             level: data.level,
             programme_id: parseInt(data.programme_id),
             role: data.role,
-            password: data.password
+            password: data.password,
+            admin_token: data.admin_token
         };
 
         try {

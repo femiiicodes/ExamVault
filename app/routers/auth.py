@@ -11,6 +11,7 @@ from pydantic import BaseModel
 from datetime import datetime,timedelta, timezone
 from starlette import status
 from fastapi.templating import Jinja2Templates
+import os
 
 
 router = APIRouter(tags=['auth'],prefix='/auth')
@@ -77,6 +78,7 @@ class UserRequest(BaseModel):
     programme_id: int
     role: str
     password: str
+    admin_token: str | None = None
 
 
 
@@ -154,6 +156,9 @@ async def logout():
 
 @router.post('/register',status_code=status.HTTP_201_CREATED)
 async def add_user(db:db_dependency,new_user:UserRequest):
+    if new_user.admin_token != os.getenv('ADMIN_KEY'):
+        raise HTTPException(status_code=403, detail='Invalid admin token')
+
     new_user_obj = User(first_name=new_user.first_name,
                         last_name=new_user.last_name,
                         email=new_user.email,

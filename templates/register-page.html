@@ -151,7 +151,7 @@
                 </div>
 
                 <!-- Admin Token Field (hidden by default) -->
-                <div class="form-group admin-token-group" id="adminTokenGroup">
+                <div class="form-group admin-token-group is-visible" id="adminTokenGroup">
                     <label for="adminToken">Admin Token</label>
                     <div class="input-wrapper">
                         <input type="password" id="adminToken" name="admin_token" placeholder="Enter your admin token">
@@ -314,11 +314,9 @@
             if (password !== confirmPassword || !confirmPassword) valid = false;
 
             // Admin token
-            if (adminToggle.checked) {
-                const token = adminTokenInput.value.trim();
-                showError('tokenError', !token);
-                if (!token) valid = false;
-            }
+            const token = adminTokenInput.value.trim();
+            showError('tokenError', !token);
+            if (!token) valid = false;
 
             // if (valid) {
             //     // Submit the form — replace this with your actual API call
