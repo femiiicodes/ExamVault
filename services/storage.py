@@ -47,6 +47,20 @@ def generate_download_url(
         ExpiresIn=expires_in,
     )
 
+def get_file(object_key: str, byte_range: str | None = None):
+    """Read an R2 object, optionally requesting a byte range."""
+    params = {
+        "Bucket": R2_BUCKET_NAME,
+        "Key": object_key,
+    }
+    if byte_range:
+        params["Range"] = byte_range
+    return r2.get_object(**params)
+
+def get_file_metadata(object_key: str):
+    """Read R2 object metadata without downloading the object body."""
+    return r2.head_object(Bucket=R2_BUCKET_NAME, Key=object_key)
+
 def delete_file(object_key: str):
     """Delete a file from R2 bucket"""
     try:

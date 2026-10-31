@@ -12,9 +12,19 @@ from dotenv import load_dotenv
 # access to the values within the .ini file in use.
 config = context.config
 
-load_dotenv()
-database_url = os.getenv('DATABASE_URL')
-config.set_main_option('sqlalchemy.url',database_url)
+env_file = os.getenv("ENV_FILE", ".env")
+
+load_dotenv(env_file, override=True)
+
+database_url = os.getenv("DATABASE_URL")
+
+if not database_url:
+    raise RuntimeError(f"DATABASE_URL not found in {env_file}")
+
+config.set_main_option(
+    "sqlalchemy.url",
+    database_url.replace("%", "%%")
+)
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.

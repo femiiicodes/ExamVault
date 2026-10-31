@@ -11,11 +11,10 @@
     <script>
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
     </script>
-<base target="_blank">
 </head>
 <body>
 
-    <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+    <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="closeSidebar()"></div>
     <div class="toast-container" id="toastContainer"></div>
 
     <div class="admin-layout">
@@ -398,21 +397,26 @@
                     <div class="pdf-preview-toolbar">
                         <span class="pdf-preview-label">Document</span>
                         <div class="pdf-preview-controls">
-                            <button onclick="viewPqPrevPage()">
+                            <button id="viewPqPrevButton" onclick="viewPqPrevPage()" disabled>
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;">
                                     <polyline points="15 18 9 12 15 6"/>
                                 </svg>
                             </button>
                             <span id="viewPqPageIndicator">Page 1 of 1</span>
-                            <button onclick="viewPqNextPage()">
+                            <button id="viewPqNextButton" onclick="viewPqNextPage()" disabled>
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;">
                                     <polyline points="9 18 15 12 9 6"/>
                                 </svg>
                             </button>
+                            <button onclick="viewPqZoomOut()" aria-label="Zoom out">−</button>
+                            <span id="viewPqZoomIndicator">100%</span>
+                            <button onclick="viewPqZoomIn()" aria-label="Zoom in">+</button>
+                            <button onclick="togglePqFullscreen()" aria-label="Toggle fullscreen">⛶</button>
                         </div>
                     </div>
-                    <div class="pdf-preview-viewport" id="viewPqViewport">
-                        <iframe id="viewPqFrame" title="Past question PDF" style="width:100%;height:600px;border:0;"></iframe>
+                    <div class="pdf-preview-viewport pdf-viewer-viewport" id="viewPqViewport">
+                        <div class="pdf-viewer-pages" id="viewPqPages"></div>
+                        <div class="pdf-viewer-status" id="viewPqStatus">Loading document...</div>
                     </div>
                 </div>
             </div>
@@ -461,6 +465,9 @@
         let reviewCurrentPage = 1;
         let viewPqPdfDoc = null;
         let viewPqCurrentPage = 1;
+        let viewPqTotalPages = 1;
+        let viewPqZoomLevel = 1;
+        let viewPqRenderToken = 0;
 
         // Filters
         let activeFilters = { course: '', session: '', type: '', uploader: '' };
@@ -489,6 +496,11 @@
             document.getElementById('sidebarBackdrop').classList.toggle('is-visible');
         }
 
+        function closeSidebar() {
+            document.getElementById('adminSidebar').classList.remove('is-open');
+            document.getElementById('sidebarBackdrop').classList.remove('is-visible');
+        }
+
         // ====== LOGOUT ======
         async function logoutUser() {
             try {
@@ -507,9 +519,15 @@
 
         // ====== MODALS ======
         function openModal(id) { document.getElementById(id).classList.add('is-open'); document.body.style.overflow = 'hidden'; }
-        function closeModal(id) { document.getElementById(id).classList.remove('is-open'); document.body.style.overflow = ''; }
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('is-open');
+            document.body.style.overflow = '';
+            if (id === 'viewPqModal') {
+                resetViewPqViewer();
+            }
+        }
         document.querySelectorAll('.modal-overlay').forEach(o => {
-            o.addEventListener('click', e => { if (e.target === o) { o.classList.remove('is-open'); document.body.style.overflow = ''; } });
+            o.addEventListener('click', e => { if (e.target === o) { closeModal(o.id); } });
         });
 
         // ====== POPULATE FILTERS ======
@@ -923,16 +941,139 @@
             document.getElementById('viewPqTitle').textContent = pq.course_title;
             document.getElementById('viewPqMeta').textContent = pq.assessment_type + ' · ' + pq.session + ' · Level ' + pq.level + ' · Uploaded by ' + pq.uploader;
 
-            viewPqCurrentPage = 1;
             const fileUrl = '/pqs/download_file?id=' + id;
-            document.getElementById('viewPqFrame').src = fileUrl;
             document.getElementById('viewPqDownload').href = fileUrl + '&download=true';
 
             openModal('viewPqModal');
+            loadViewPq(fileUrl.replace('/download_file', '/view_file'));
         }
 
-        function viewPqPrevPage() { if (viewPqCurrentPage > 1) { viewPqCurrentPage--; document.getElementById('viewPqPageIndicator').textContent = 'Page ' + viewPqCurrentPage; } }
-        function viewPqNextPage() { viewPqCurrentPage++; document.getElementById('viewPqPageIndicator').textContent = 'Page ' + viewPqCurrentPage; }
+        async function loadViewPq(fileUrl) {
+            resetViewPqViewer();
+            const token = ++viewPqRenderToken;
+            setViewPqStatus('Loading document...');
+            try {
+                viewPqPdfDoc = await pdfjsLib.getDocument(fileUrl).promise;
+                if (token !== viewPqRenderToken) return;
+                viewPqTotalPages = viewPqPdfDoc.numPages;
+                viewPqCurrentPage = 1;
+                await renderViewPqPages(token);
+                setViewPqStatus('');
+                updateViewPqControls();
+            } catch (error) {
+                if (token !== viewPqRenderToken) return;
+                setViewPqStatus('Could not load this PDF.');
+                showToast('Could not load PDF.', 'error');
+                console.error(error);
+            }
+        }
+
+        async function renderViewPqPages(token) {
+            const pagesContainer = document.getElementById('viewPqPages');
+            pagesContainer.replaceChildren();
+            for (let pageNumber = 1; pageNumber <= viewPqTotalPages; pageNumber++) {
+                if (token !== viewPqRenderToken) return;
+                const page = await viewPqPdfDoc.getPage(pageNumber);
+                const baseViewport = page.getViewport({ scale: 1 });
+                const availableWidth = Math.max(pagesContainer.clientWidth - 4, 1);
+                const fitScale = Math.min(1, availableWidth / baseViewport.width);
+                const viewport = page.getViewport({ scale: fitScale * viewPqZoomLevel });
+                const pageContainer = document.createElement('div');
+                pageContainer.className = 'pdf-viewer-page';
+                pageContainer.dataset.page = pageNumber;
+                const canvas = document.createElement('canvas');
+                canvas.width = viewport.width;
+                canvas.height = viewport.height;
+                canvas.setAttribute('aria-label', 'PDF page ' + pageNumber);
+                pageContainer.appendChild(canvas);
+                pagesContainer.appendChild(pageContainer);
+                await page.render({
+                    canvasContext: canvas.getContext('2d'),
+                    viewport
+                }).promise;
+            }
+        }
+
+        function updateViewPqControls() {
+            document.getElementById('viewPqPageIndicator').textContent =
+                'Page ' + viewPqCurrentPage + ' of ' + viewPqTotalPages;
+            document.getElementById('viewPqPrevButton').disabled = viewPqCurrentPage <= 1;
+            document.getElementById('viewPqNextButton').disabled = viewPqCurrentPage >= viewPqTotalPages;
+            document.getElementById('viewPqZoomIndicator').textContent =
+                Math.round(viewPqZoomLevel * 100) + '%';
+        }
+
+        function viewPqPrevPage() {
+            if (viewPqCurrentPage > 1) {
+                viewPqCurrentPage--;
+                scrollToViewPqPage();
+            }
+        }
+
+        function viewPqNextPage() {
+            if (viewPqCurrentPage < viewPqTotalPages) {
+                viewPqCurrentPage++;
+                scrollToViewPqPage();
+            }
+        }
+
+        function scrollToViewPqPage() {
+            const page = document.querySelector('#viewPqPages [data-page="' + viewPqCurrentPage + '"]');
+            if (page) page.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            updateViewPqControls();
+        }
+
+        async function rerenderViewPq() {
+            if (!viewPqPdfDoc) return;
+            const token = ++viewPqRenderToken;
+            setViewPqStatus('Rendering document...');
+            await renderViewPqPages(token);
+            if (token === viewPqRenderToken) {
+                setViewPqStatus('');
+                scrollToViewPqPage();
+            }
+        }
+
+        function viewPqZoomIn() {
+            viewPqZoomLevel = Math.min(viewPqZoomLevel + 0.25, 3);
+            updateViewPqControls();
+            rerenderViewPq();
+        }
+
+        function viewPqZoomOut() {
+            viewPqZoomLevel = Math.max(viewPqZoomLevel - 0.25, 0.5);
+            updateViewPqControls();
+            rerenderViewPq();
+        }
+
+        function togglePqFullscreen() {
+            const viewport = document.getElementById('viewPqViewport');
+            if (document.fullscreenElement) {
+                document.exitFullscreen();
+            } else if (viewport.requestFullscreen) {
+                viewport.requestFullscreen();
+            } else if (viewport.webkitRequestFullscreen) {
+                viewport.webkitRequestFullscreen();
+            }
+        }
+
+        function setViewPqStatus(message) {
+            const status = document.getElementById('viewPqStatus');
+            status.textContent = message;
+            status.hidden = !message;
+        }
+
+        function resetViewPqViewer() {
+            viewPqRenderToken++;
+            if (viewPqPdfDoc) viewPqPdfDoc.destroy();
+            viewPqPdfDoc = null;
+            viewPqCurrentPage = 1;
+            viewPqTotalPages = 1;
+            viewPqZoomLevel = 1;
+            document.getElementById('viewPqPages').replaceChildren();
+            setViewPqStatus('');
+            updateViewPqControls();
+        }
 
         // ====== DELETE ======
         function openDeletePqModal(id) {

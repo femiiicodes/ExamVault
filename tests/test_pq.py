@@ -53,6 +53,71 @@ def test_pq_file_download_returns_signed_url(authenticated_client, sample_pq):
     assert '.r2.cloudflarestorage.com' in location or 'http' in location
 
 
+def test_pq_view_file_returns_authenticated_pdf(authenticated_client, sample_pq, monkeypatch):
+    from app.routers import pqs
+
+    class FakeBody:
+        def iter_chunks(self, chunk_size):
+            yield b'%PDF-test'
+
+        def close(self):
+            pass
+
+    monkeypatch.setattr(
+        pqs,
+        'get_file_metadata',
+        lambda object_key: {'ContentLength': 9},
+    )
+    monkeypatch.setattr(
+        pqs,
+        'get_file',
+        lambda object_key: {'Body': FakeBody()},
+    )
+
+    response = authenticated_client.get('/pqs/view_file', params={'id': sample_pq.id})
+
+    assert response.status_code == 200
+    assert response.headers['content-type'] == 'application/pdf'
+    assert response.headers['accept-ranges'] == 'bytes'
+    assert response.content == b'%PDF-test'
+
+
+def test_pq_view_file_supports_byte_ranges(authenticated_client, sample_pq, monkeypatch):
+    from app.routers import pqs
+
+    class FakeBody:
+        def iter_chunks(self, chunk_size):
+            yield b'partial'
+
+        def close(self):
+            pass
+
+    monkeypatch.setattr(
+        pqs,
+        'get_file_metadata',
+        lambda object_key: {'ContentLength': 20},
+    )
+    requested_ranges = []
+
+    def fake_get_file(object_key, byte_range=None):
+        requested_ranges.append(byte_range)
+        return {'Body': FakeBody()}
+
+    monkeypatch.setattr(pqs, 'get_file', fake_get_file)
+
+    response = authenticated_client.get(
+        '/pqs/view_file',
+        params={'id': sample_pq.id},
+        headers={'Range': 'bytes=5-11'},
+    )
+
+    assert response.status_code == 206
+    assert response.headers['content-range'] == 'bytes 5-11/20'
+    assert response.headers['content-length'] == '7'
+    assert requested_ranges == ['bytes=5-11']
+    assert response.content == b'partial'
+
+
 def test_upload_pq(authenticated_client, test_db):
     from app.models import College, Course, Programme, ProgrammeCourse
     college = College(name='Upload Test College')
@@ -126,5 +191,4 @@ def test_upload_rejects_conflicting_programme_levels(authenticated_client, test_
 
     assert response.status_code == 400
     assert response.json()['detail'] == 'Course has conflicting programme levels'
-
 

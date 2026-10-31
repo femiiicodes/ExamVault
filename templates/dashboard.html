@@ -7,7 +7,10 @@
     <link rel="preconnect" href="https://api.fontshare.com" crossorigin>
     <link href="https://api.fontshare.com/v2/css?f[]=satoshi@700,500,400&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', path='css/dashboard.css') }}">
-<base target="_blank">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    </script>
 </head>
 <body>
 
@@ -138,7 +141,7 @@
 
             <!-- Preview Modal -->
             <div class="modal-overlay" id="previewModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;padding:20px;">
-                <div class="modal-card" style="background:white;border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,0.3);width:100%;max-width:1000px;height:95vh;display:flex;flex-direction:column;">
+                <div class="modal-card user-pdf-modal" style="background:white;border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,0.3);width:100%;max-width:1000px;height:95vh;display:flex;flex-direction:column;">
                     <div style="display:flex;justify-content:space-between;align-items:center;padding:20px;border-bottom:1px solid #f0f0f0;flex-shrink:0;">
                         <div>
                             <h2 id="previewTitle" style="margin:0;font-size:20px;font-weight:600;">Preview</h2>
@@ -146,7 +149,19 @@
                         </div>
                         <button onclick="closePreviewModal()" style="background:none;border:none;font-size:24px;cursor:pointer;color:#999;">&times;</button>
                     </div>
-                    <iframe id="previewFrame" style="flex:1;border:none;background:#f9f9f9;"></iframe>
+                    <div class="user-pdf-toolbar">
+                        <button id="userPdfPrevButton" onclick="userPdfPrevPage()" disabled>Previous</button>
+                        <span id="userPdfPageIndicator">Page 1 of 1</span>
+                        <button id="userPdfNextButton" onclick="userPdfNextPage()" disabled>Next</button>
+                        <button onclick="userPdfZoomOut()" aria-label="Zoom out">−</button>
+                        <span id="userPdfZoomIndicator">100%</span>
+                        <button onclick="userPdfZoomIn()" aria-label="Zoom in">+</button>
+                        <button onclick="toggleUserPdfFullscreen()" aria-label="Toggle fullscreen">Fullscreen</button>
+                    </div>
+                    <div class="user-pdf-viewport" id="userPdfViewport">
+                        <div class="user-pdf-pages" id="userPdfPages"></div>
+                        <div class="user-pdf-status" id="userPdfStatus">Loading document...</div>
+                    </div>
                 </div>
             </div>
         </main>
@@ -159,6 +174,11 @@
         // ====== STATE ======
         let activeFilters = { course: '', type: '', session: '' };
         let searchQuery = '';
+        let userPdfDocument = null;
+        let userPdfCurrentPage = 1;
+        let userPdfTotalPages = 1;
+        let userPdfZoomLevel = 1;
+        let userPdfRenderToken = 0;
 
         // ====== DOM REFS ======
         const searchInput = document.getElementById('searchInput');
@@ -216,13 +236,143 @@
         function openPreviewModal(pq) {
             document.getElementById('previewTitle').textContent = pq.course_code + ' — ' + pq.assessment_type;
             document.getElementById('previewMeta').textContent = pq.course_title + ' · ' + pq.session + ' · Level ' + pq.level;
-            document.getElementById('previewFrame').src = `/pqs/download_file?id=${pq.id}`;
+            document.body.style.overflow = 'hidden';
             document.getElementById('previewModal').style.display = 'flex';
+            loadUserPdf(`/pqs/view_file?id=${pq.id}`);
         }
 
         function closePreviewModal() {
             document.getElementById('previewModal').style.display = 'none';
-            document.getElementById('previewFrame').src = '';
+            document.body.style.overflow = '';
+            resetUserPdfViewer();
+        }
+
+        async function loadUserPdf(fileUrl) {
+            resetUserPdfViewer();
+            const token = ++userPdfRenderToken;
+            setUserPdfStatus('Loading document...');
+            try {
+                userPdfDocument = await pdfjsLib.getDocument(fileUrl).promise;
+                if (token !== userPdfRenderToken) return;
+                userPdfTotalPages = userPdfDocument.numPages;
+                userPdfCurrentPage = 1;
+                await renderUserPdfPages(token);
+                if (token === userPdfRenderToken) {
+                    setUserPdfStatus('');
+                    updateUserPdfControls();
+                }
+            } catch (error) {
+                if (token !== userPdfRenderToken) return;
+                setUserPdfStatus('Could not load this PDF.');
+                console.error(error);
+            }
+        }
+
+        async function renderUserPdfPages(token) {
+            const pagesContainer = document.getElementById('userPdfPages');
+            pagesContainer.replaceChildren();
+            for (let pageNumber = 1; pageNumber <= userPdfTotalPages; pageNumber++) {
+                if (token !== userPdfRenderToken) return;
+                const page = await userPdfDocument.getPage(pageNumber);
+                const baseViewport = page.getViewport({ scale: 1 });
+                const availableWidth = Math.max(pagesContainer.clientWidth - 4, 1);
+                const fitScale = Math.min(1, availableWidth / baseViewport.width);
+                const viewport = page.getViewport({ scale: fitScale * userPdfZoomLevel });
+                const pageContainer = document.createElement('div');
+                pageContainer.className = 'user-pdf-page';
+                pageContainer.dataset.page = pageNumber;
+                const canvas = document.createElement('canvas');
+                canvas.width = viewport.width;
+                canvas.height = viewport.height;
+                canvas.setAttribute('aria-label', 'PDF page ' + pageNumber);
+                pageContainer.appendChild(canvas);
+                pagesContainer.appendChild(pageContainer);
+                await page.render({
+                    canvasContext: canvas.getContext('2d'),
+                    viewport
+                }).promise;
+            }
+        }
+
+        function updateUserPdfControls() {
+            document.getElementById('userPdfPageIndicator').textContent =
+                'Page ' + userPdfCurrentPage + ' of ' + userPdfTotalPages;
+            document.getElementById('userPdfPrevButton').disabled = userPdfCurrentPage <= 1;
+            document.getElementById('userPdfNextButton').disabled = userPdfCurrentPage >= userPdfTotalPages;
+            document.getElementById('userPdfZoomIndicator').textContent =
+                Math.round(userPdfZoomLevel * 100) + '%';
+        }
+
+        function scrollToUserPdfPage() {
+            const page = document.querySelector('#userPdfPages [data-page="' + userPdfCurrentPage + '"]');
+            if (page) page.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            updateUserPdfControls();
+        }
+
+        function userPdfPrevPage() {
+            if (userPdfCurrentPage > 1) {
+                userPdfCurrentPage--;
+                scrollToUserPdfPage();
+            }
+        }
+
+        function userPdfNextPage() {
+            if (userPdfCurrentPage < userPdfTotalPages) {
+                userPdfCurrentPage++;
+                scrollToUserPdfPage();
+            }
+        }
+
+        async function rerenderUserPdf() {
+            if (!userPdfDocument) return;
+            const token = ++userPdfRenderToken;
+            setUserPdfStatus('Rendering document...');
+            await renderUserPdfPages(token);
+            if (token === userPdfRenderToken) {
+                setUserPdfStatus('');
+                scrollToUserPdfPage();
+            }
+        }
+
+        function userPdfZoomIn() {
+            userPdfZoomLevel = Math.min(userPdfZoomLevel + 0.25, 3);
+            updateUserPdfControls();
+            rerenderUserPdf();
+        }
+
+        function userPdfZoomOut() {
+            userPdfZoomLevel = Math.max(userPdfZoomLevel - 0.25, 0.5);
+            updateUserPdfControls();
+            rerenderUserPdf();
+        }
+
+        function toggleUserPdfFullscreen() {
+            const viewport = document.getElementById('userPdfViewport');
+            if (document.fullscreenElement) {
+                document.exitFullscreen();
+            } else if (viewport.requestFullscreen) {
+                viewport.requestFullscreen();
+            } else if (viewport.webkitRequestFullscreen) {
+                viewport.webkitRequestFullscreen();
+            }
+        }
+
+        function setUserPdfStatus(message) {
+            const status = document.getElementById('userPdfStatus');
+            status.textContent = message;
+            status.hidden = !message;
+        }
+
+        function resetUserPdfViewer() {
+            userPdfRenderToken++;
+            if (userPdfDocument) userPdfDocument.destroy();
+            userPdfDocument = null;
+            userPdfCurrentPage = 1;
+            userPdfTotalPages = 1;
+            userPdfZoomLevel = 1;
+            document.getElementById('userPdfPages').replaceChildren();
+            setUserPdfStatus('');
+            updateUserPdfControls();
         }
 
         function populateFilterOptions() {
