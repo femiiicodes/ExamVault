@@ -40,8 +40,7 @@ def test_protected_route_with_token(client,sample_user,sample_pq):
     assert response.json() == {'detail': 'Unable to validate credentials'}
 
 
-def test_register_rejects_invalid_admin_token(client, sample_user, monkeypatch):
-    monkeypatch.setenv('ADMIN_KEY', 'test-admin-key')
+def test_register_ignores_public_admin_token(client, sample_user):
     payload = {
         'first_name': 'New',
         'last_name': 'User',
@@ -55,30 +54,88 @@ def test_register_rejects_invalid_admin_token(client, sample_user, monkeypatch):
 
     response = client.post('/auth/register', json=payload)
 
-    assert response.status_code == 403
-    assert response.json() == {'detail': 'Invalid admin token'}
+    assert response.status_code == 201
+    assert response.json()['detail'] == 'Account created successfully'
 
 
-def test_register_accepts_admin_token_from_environment(client, sample_user, test_db, monkeypatch):
-    monkeypatch.setenv('ADMIN_KEY', 'test-admin-key')
+def test_register_creates_regular_user(client, sample_user, test_db):
     payload = {
         'first_name': 'New',
         'last_name': 'User',
         'email': 'new-user@example.com',
         'level': '300',
         'programme_id': sample_user.programme_id,
-        'role': 'user',
+        'role': 'admin',
         'password': 'Password',
-        'admin_token': 'test-admin-key'
+        'admin_token': 'not-used'
     }
 
     response = client.post('/auth/register', json=payload)
 
     assert response.status_code == 201
-    assert test_db.query(User).filter(User.email == payload['email']).one_or_none() is not None
+    created = test_db.query(User).filter(User.email == payload['email']).one()
+    assert created.role == 'user'
 
 
+def test_register_hashes_optional_security_answers(client, sample_user, test_db):
+    payload = {
+        'first_name': 'Recovery',
+        'last_name': 'User',
+        'email': 'recovery-user@example.com',
+        'level': '300',
+        'programme_id': sample_user.programme_id,
+        'password': 'Password',
+        'security_answers': [
+            {'question_id': 'q1', 'answer': '  Blue   House '},
+            {'question_id': 'q2', 'answer': 'Accra'},
+        ],
+    }
 
+    response = client.post('/auth/register', json=payload)
+
+    assert response.status_code == 201
+    user = test_db.query(User).filter(User.email == payload['email']).one()
+    assert len(user.security_answers) == 2
+    assert all(answer.answer_hash != 'blue house' for answer in user.security_answers)
+
+
+def test_check_email_reports_available_and_used_addresses(client, sample_user):
+    available = client.get('/auth/check-email', params={'email': 'new-user@example.com'})
+    used = client.get('/auth/check-email', params={'email': sample_user.email.upper()})
+
+    assert available.status_code == 200
+    assert available.json() == {'available': True}
+    assert used.status_code == 200
+    assert used.json() == {'available': False}
+
+
+def test_refresh_rotates_persistent_session(client, sample_user, test_db):
+    login_response = client.post(
+        '/auth/token',
+        data={
+            'username': sample_user.email,
+            'password': 'Password',
+            'client_id': 'remember',
+        },
+    )
+    assert login_response.status_code == 200
+    old_refresh = client.cookies.get('refresh_token')
+
+    refresh_response = client.post('/auth/refresh')
+
+    assert refresh_response.status_code == 200
+    assert client.cookies.get('refresh_token') != old_refresh
+    assert test_db.query(User).filter(User.email == sample_user.email).one()
+
+
+def test_logout_revokes_refresh_session(client, sample_user, test_db):
+    client.post(
+        '/auth/token',
+        data={'username': sample_user.email, 'password': 'Password', 'client_id': 'remember'},
+    )
+    client.post('/auth/logout')
+
+    assert client.post('/auth/refresh').status_code == 401
 
 
 

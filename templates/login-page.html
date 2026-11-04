@@ -47,7 +47,7 @@
                 <div class="form-group">
                     <div class="label-row">
                         <label for="password">Password</label>
-                        <a href="#" class="forgot-link">Forgot password?</a>
+                        <span class="forgot-link" title="Password recovery is not available yet">Password recovery coming soon</span>
                     </div>
                     <div class="input-wrapper">
                         <input type="password" id="password" name="password" placeholder="Enter your password" required>
@@ -78,13 +78,13 @@
 
                 <!-- Remember Me -->
                 <label class="remember-toggle">
-                    <input type="checkbox" id="rememberMe" name="remember">
+                    <input type="checkbox" id="rememberMe" name="remember" checked>
                     <span class="check-box">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
                             <polyline points="20 6 9 17 4 12"/>
                         </svg>
                     </span>
-                    <span class="remember-label">Remember me for 30 days</span>
+                    <span class="remember-label">Remember me on this device</span>
                 </label>
 
                 <!-- Submit -->
@@ -149,6 +149,8 @@
                 const formData = new FormData(form);
                 const data = new URLSearchParams(formData);
                 data.set('admin', document.getElementById('adminToggle').checked ? 'true' : 'false');
+                data.set('scope', document.getElementById('adminToggle').checked ? 'admin' : '');
+                data.set('client_id', document.getElementById('rememberMe').checked ? 'remember' : 'session');
 
                 fetch('/auth/token', {
                     method: 'POST',
@@ -164,15 +166,14 @@
                     }
                 }).then(data => {
                     const isAdmin = document.getElementById('adminToggle').checked;
-                    if (isAdmin && data.is_admin) {
-                        window.location.href = '/admin';
-                    } else {
-                        window.location.href = '/dashboard';
-                    }
+                    const next = new URLSearchParams(window.location.search).get('next');
+                    const safeNext = next && next.startsWith('/') && !next.startsWith('//')
+                        ? next
+                        : (isAdmin && data.is_admin ? '/admin' : '/dashboard');
+                    window.location.href = safeNext;
                 }).catch(err => console.error('Login error:', err));
             }
         });
     </script>
-<script src="{{url_for('static',path='js/base.js')}}"></script>
 </body>
 </html>

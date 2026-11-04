@@ -1,4 +1,5 @@
 from fastapi import FastAPI, APIRouter, Request, Depends, HTTPException
+from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from app.routers import pqs, auth, users, course_management
 from fastapi.templating import Jinja2Templates
@@ -21,6 +22,8 @@ async def render_landing_page(request:Request):
 
 @app.get('/admin')
 async def render_admin_dashboard(request:Request, user:Annotated[User,Depends(get_current_user)]=None, db:Annotated[Session,Depends(get_db)]=None):
+    if isinstance(user, RedirectResponse):
+        return user
     if user is None:
         raise HTTPException(status_code=401,detail='User not authenticated')
     if user.role != 'admin':
@@ -46,6 +49,8 @@ async def render_admin_dashboard(request:Request, user:Annotated[User,Depends(ge
 
 @app.get('/dashboard')
 async def render_student_dashboard(request:Request, user:Annotated[User,Depends(get_current_user)]=None):
+    if isinstance(user, RedirectResponse):
+        return user
     if user is None:
         raise HTTPException(status_code=401,detail='User not authenticated')
 
@@ -53,6 +58,8 @@ async def render_student_dashboard(request:Request, user:Annotated[User,Depends(
 
 @app.get('/admin/colleges')
 async def render_colleges_page(request:Request, user:Annotated[User,Depends(get_current_user)]=None):
+    if isinstance(user, RedirectResponse):
+        return user
     if user is None:
         raise HTTPException(status_code=401,detail='User not authenticated')
     if user.role != 'admin':
@@ -62,6 +69,8 @@ async def render_colleges_page(request:Request, user:Annotated[User,Depends(get_
 
 @app.get('/admin/programmes')
 async def render_programmes_page(request:Request, user:Annotated[User,Depends(get_current_user)]=None):
+    if isinstance(user, RedirectResponse):
+        return user
     if user is None:
         raise HTTPException(status_code=401,detail='User not authenticated')
     if user.role != 'admin':
@@ -71,6 +80,8 @@ async def render_programmes_page(request:Request, user:Annotated[User,Depends(ge
 
 @app.get('/admin/courses')
 async def render_courses_page(request:Request, user:Annotated[User,Depends(get_current_user)]=None):
+    if isinstance(user, RedirectResponse):
+        return user
     if user is None:
         raise HTTPException(status_code=401,detail='User not authenticated')
     if user.role != 'admin':
@@ -80,6 +91,8 @@ async def render_courses_page(request:Request, user:Annotated[User,Depends(get_c
 
 @app.get('/admin/pqs')
 async def render_pqs_page(request:Request, user:Annotated[User,Depends(get_current_user)]=None):
+    if isinstance(user, RedirectResponse):
+        return user
     if user is None:
         raise HTTPException(status_code=401,detail='User not authenticated')
     if user.role != 'admin':

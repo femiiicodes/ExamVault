@@ -17,6 +17,7 @@
     --color-border: #e2e8f0;
     --color-border-focus: #1d4ed8;
     --color-error: #dc2626;
+    --color-success: #16a34a;
     --color-error-bg: #fef2f2;
     --color-disabled: #cbd5e1;
     --color-disabled-text: #94a3b8;
@@ -55,6 +56,166 @@ a {
     max-width: 1200px;
     margin: 0 auto;
     padding: 0 24px;
+}
+
+.register-progress {
+    display: flex;
+    align-items: center;
+    margin: 0 0 24px;
+}
+
+.progress-step {
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    border: 1px solid var(--color-border);
+    border-radius: 50%;
+    color: var(--color-text-muted);
+    font-size: 0.8rem;
+}
+
+.progress-step.is-active {
+    border-color: var(--color-primary);
+    background: var(--color-primary);
+    color: #fff;
+}
+
+.progress-line {
+    flex: 1;
+    height: 1px;
+    margin: 0 8px;
+    background: var(--color-border);
+}
+
+.registration-step {
+    display: none;
+    animation: registrationStepIn 0.2s ease-out;
+}
+
+.registration-step.is-active {
+    display: block;
+}
+
+.registration-step h2 {
+    margin-bottom: 6px;
+    font-size: 1.25rem;
+}
+
+.step-intro {
+    margin-bottom: 20px;
+    color: var(--color-text-muted);
+    font-size: 0.9rem;
+}
+
+.registration-actions {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 24px;
+}
+
+.registration-actions #nextButton {
+    margin-left: auto;
+}
+
+.security-question {
+    display: grid;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.form-status {
+    min-height: 1.4em;
+    margin-top: 12px;
+    color: var(--color-primary);
+    font-size: 0.9rem;
+}
+
+.form-status.is-error {
+    color: var(--color-error);
+}
+
+.toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 600;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.toast {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 280px;
+    max-width: 400px;
+    padding: 14px 18px;
+    background: var(--color-card-bg);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    box-shadow: 0 10px 40px rgba(15, 23, 42, 0.12);
+    color: var(--color-text);
+    font-size: 0.9rem;
+    font-weight: 500;
+    animation: toastIn 0.3s ease-out;
+}
+
+.toast-icon {
+    display: grid;
+    place-items: center;
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    color: #fff;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.toast-success {
+    border-left: 3px solid var(--color-success);
+}
+
+.toast-success .toast-icon {
+    background: var(--color-success);
+}
+
+.toast-error {
+    border-left: 3px solid var(--color-error);
+}
+
+.toast-error .toast-icon {
+    background: var(--color-error);
+}
+
+.toast-info {
+    border-left: 3px solid var(--color-primary);
+}
+
+.toast-info .toast-icon {
+    background: var(--color-primary);
+}
+
+.toast.toast-out {
+    animation: toastOut 0.25s ease-in forwards;
+}
+
+@keyframes toastIn {
+    from { opacity: 0; transform: translateX(20px) scale(0.95); }
+    to { opacity: 1; transform: translateX(0) scale(1); }
+}
+
+@keyframes toastOut {
+    from { opacity: 1; transform: translateX(0) scale(1); }
+    to { opacity: 0; transform: translateX(20px) scale(0.95); }
+}
+
+@keyframes registrationStepIn {
+    from { opacity: 0; transform: translateX(8px); }
+    to { opacity: 1; transform: translateX(0); }
 }
 
 svg {
@@ -222,7 +383,9 @@ svg {
 }
 
 .form-group input,
-.form-group select {
+.form-group select,
+.security-question input,
+.security-question select {
     width: 100%;
     padding: 12px 14px;
     font-family: 'Satoshi', sans-serif;
@@ -242,12 +405,16 @@ svg {
 }
 
 .form-group input:hover,
-.form-group select:hover {
+.form-group select:hover,
+.security-question input:hover,
+.security-question select:hover {
     border-color: #cbd5e1;
 }
 
 .form-group input:focus,
-.form-group select:focus {
+.form-group select:focus,
+.security-question input:focus,
+.security-question select:focus {
     border-color: var(--color-border-focus);
     box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.1);
 }
@@ -260,6 +427,15 @@ svg {
 .select-wrapper select {
     padding-right: 40px;
     cursor: pointer;
+}
+
+.register-form select {
+    appearance: none;
+    -webkit-appearance: none;
+}
+
+.security-question .select-wrapper select {
+    padding-right: 40px;
 }
 
 .select-chevron {

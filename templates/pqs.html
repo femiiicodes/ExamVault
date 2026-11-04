@@ -7,6 +7,7 @@
     <link rel="preconnect" href="https://api.fontshare.com" crossorigin>
     <link href="https://api.fontshare.com/v2/css?f[]=satoshi@700,500,400&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', path='css/admin-dashboard.css') }}">
+    <script src="{{ url_for('static', path='js/auth.js') }}"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <script>
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
@@ -415,8 +416,11 @@
                         </div>
                     </div>
                     <div class="pdf-preview-viewport pdf-viewer-viewport" id="viewPqViewport">
+                        <div class="pdf-viewer-status" id="viewPqStatus">
+                            <span class="pdf-status-message"></span>
+                            <span class="pdf-loading-bar" aria-hidden="true"></span>
+                        </div>
                         <div class="pdf-viewer-pages" id="viewPqPages"></div>
-                        <div class="pdf-viewer-status" id="viewPqStatus">Loading document...</div>
                     </div>
                 </div>
             </div>
@@ -592,7 +596,7 @@
                 ]);
                 if (!coursesResponse.ok) throw new Error(await getErrorMessage(coursesResponse));
                 if (!pqsResponse.ok) throw new Error(await getErrorMessage(pqsResponse));
-                courses.push(...await coursesResponse.json());
+                courses.splice(0, courses.length, ...(await coursesResponse.json()));
                 pastQuestions = (await pqsResponse.json()).map(pq => ({
                     ...pq,
                     courseId: pq.course_id,
@@ -962,7 +966,7 @@
                 updateViewPqControls();
             } catch (error) {
                 if (token !== viewPqRenderToken) return;
-                setViewPqStatus('Could not load this PDF.');
+                setViewPqStatus('Could not load this PDF.', true);
                 showToast('Could not load PDF.', 'error');
                 console.error(error);
             }
@@ -1057,9 +1061,10 @@
             }
         }
 
-        function setViewPqStatus(message) {
+        function setViewPqStatus(message, isError = false) {
             const status = document.getElementById('viewPqStatus');
-            status.textContent = message;
+            status.querySelector('.pdf-status-message').textContent = message;
+            status.dataset.state = isError ? 'error' : 'loading';
             status.hidden = !message;
         }
 

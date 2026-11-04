@@ -6,172 +6,119 @@
     <title>Register — ExamVault</title>
     <link rel="preconnect" href="https://api.fontshare.com" crossorigin>
     <link href="https://api.fontshare.com/v2/css?f[]=satoshi@700,500,400&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{url_for('static',path='css/register-page.css')}}">
+    <link rel="stylesheet" href="{{ url_for('static', path='css/register-page.css') }}">
 </head>
 <body>
-
-    <!-- Navigation -->
+    <div class="toast-container" id="toastContainer" aria-live="polite"></div>
     <nav class="navbar">
-        <a href="/" class="nav-brand">
-            <svg class="brand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
-                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
-                <line x1="8" y1="7" x2="16" y2="7"/>
-                <line x1="8" y1="11" x2="14" y2="11"/>
-            </svg>
-            <span class="brand-text">ExamVault</span>
-        </a>
+        <a href="/" class="nav-brand"><span class="brand-text">ExamVault</span></a>
         <div class="nav-links">
             <a href="/" class="nav-link">Home</a>
             <a href="/auth/login-page" class="nav-link nav-link--outline">Log In</a>
         </div>
     </nav>
 
-    <!-- Register Section -->
     <main class="register-page">
         <div class="register-card">
             <div class="register-header">
                 <h1 class="register-title">Create your account</h1>
                 <p class="register-subtitle">Join ExamVault and access thousands of past questions.</p>
             </div>
+            <div class="register-progress" aria-label="Registration progress">
+                <span class="progress-step is-active" data-step="1">1</span>
+                <span class="progress-line"></span>
+                <span class="progress-step" data-step="2">2</span>
+                <span class="progress-line"></span>
+                <span class="progress-step" data-step="3">3</span>
+                <span class="progress-line"></span>
+                <span class="progress-step" data-step="4">4</span>
+            </div>
 
             <form class="register-form" id="registerForm" novalidate>
-                <!-- Hidden role field -->
-                <input type="hidden" name="role" id="roleField" value="user">
+                <section class="registration-step is-active" data-step-panel="1">
+                    <h2>Let's get to know you</h2>
+                    <p class="step-intro">Tell us your name to get started.</p>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="firstName">First Name</label>
+                            <input type="text" id="firstName" name="first_name" required>
+                            <span class="error-msg" id="firstNameError">First name is required</span>
+                        </div>
+                        <div class="form-group">
+                            <label for="lastName">Last Name</label>
+                            <input type="text" id="lastName" name="last_name" required>
+                            <span class="error-msg" id="lastNameError">Last name is required</span>
+                        </div>
+                    </div>
+                </section>
 
-                <!-- Name Row -->
-                <div class="form-row">
+                <section class="registration-step" data-step-panel="2">
+                    <h2>Secure your account</h2>
+                    <p class="step-intro">Use an email and password you can access securely.</p>
                     <div class="form-group">
-                        <label for="firstName">First Name</label>
-                        <input type="text" id="firstName" name="first_name" placeholder="e.g. John" required>
-                        <span class="error-msg" id="firstNameError">First name is required</span>
+                        <label for="email">Email Address</label>
+                        <input type="email" id="email" name="email" required>
+                        <span class="error-msg" id="emailError">Please enter a valid email</span>
                     </div>
                     <div class="form-group">
-                        <label for="lastName">Last Name</label>
-                        <input type="text" id="lastName" name="last_name" placeholder="e.g. Doe" required>
-                        <span class="error-msg" id="lastNameError">Last name is required</span>
+                        <label for="password">Password</label>
+                        <input type="password" id="password" name="password" required minlength="8">
+                        <span class="error-msg" id="passwordError">Password must be at least 8 characters</span>
                     </div>
-                </div>
-
-                <!-- Email -->
-                <div class="form-group">
-                    <label for="email">Email Address</label>
-                    <input type="email" id="email" name="email" placeholder="you@school.edu" required>
-                    <span class="error-msg" id="emailError">Please enter a valid email</span>
-                </div>
-
-                <!-- Level -->
-                <div class="form-group">
-                    <label for="level">Level</label>
-                    <div class="select-wrapper">
-                        <select id="level" name="level" required>
-                            <option value="" disabled selected>Select your level</option>
-                            <option value="100">100 Level</option>
-                            <option value="200">200 Level</option>
-                            <option value="300">300 Level</option>
-                            <option value="400">400 Level</option>
-                            <option value="500">500 Level</option>
-                        </select>
-                        <svg class="select-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <polyline points="6 9 12 15 18 9"/>
-                        </svg>
+                    <div class="form-group">
+                        <label for="confirmPassword">Confirm Password</label>
+                        <input type="password" id="confirmPassword" name="confirm_password" required>
+                        <span class="error-msg" id="confirmPasswordError">Passwords do not match</span>
                     </div>
-                    <span class="error-msg" id="levelError">Please select your level</span>
-                </div>
+                </section>
 
-                <!-- Programme -->
-                <div class="form-group">
-                    <label for="programme">Programme</label>
-                    <div class="select-wrapper">
-                        <select id="programme" name="programme_id" required>
-                            <option value="" disabled selected>Select your programme</option>
-                        </select>
-                        <svg class="select-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <polyline points="6 9 12 15 18 9"/>
-                        </svg>
+                <section class="registration-step" data-step-panel="3">
+                    <h2>Account recovery</h2>
+                    <p class="step-intro">Forgot your password? Security questions give you another way to recover your account. Setting them up is optional, and you can always do it later.</p>
+                    <div id="securityQuestions"></div>
+                    <button type="button" class="btn btn--secondary" id="skipRecovery">Skip for now</button>
+                </section>
+
+                <section class="registration-step" data-step-panel="4">
+                    <h2>Complete your profile</h2>
+                    <p class="step-intro">Choose your programme and current level.</p>
+                    <div class="form-group">
+                        <label for="programme">Programme</label>
+                        <div class="select-wrapper">
+                            <select id="programme" name="programme_id" required>
+                                <option value="" disabled selected>Select your programme</option>
+                            </select>
+                            <span class="select-chevron" aria-hidden="true">⌄</span>
+                        </div>
+                        <span class="error-msg" id="programmeError">Please select your programme</span>
                     </div>
-                    <span class="error-msg" id="programmeError">Please select your programme</span>
-                </div>
-
-                <!-- College (Read-only) -->
-                <div class="form-group">
-                    <label for="college">College</label>
-                    <div class="input-wrapper">
-                        <input type="text" id="college" name="college" placeholder="Select a programme to see college" readonly>
+                    <div class="form-group">
+                        <label for="level">Level</label>
+                        <div class="select-wrapper">
+                            <select id="level" name="level" required>
+                                <option value="" disabled selected>Select your level</option>
+                                <option value="100">100 Level</option>
+                                <option value="200">200 Level</option>
+                                <option value="300">300 Level</option>
+                                <option value="400">400 Level</option>
+                                <option value="500">500 Level</option>
+                            </select>
+                            <span class="select-chevron" aria-hidden="true">⌄</span>
+                        </div>
+                        <span class="error-msg" id="levelError">Please select your level</span>
                     </div>
-                    <span class="field-hint">Automatically populated based on your programme selection.</span>
-                </div>
-
-                <!-- Password -->
-                <div class="form-group">
-                    <label for="password">Password</label>
-                    <div class="input-wrapper">
-                        <input type="password" id="password" name="password" placeholder="Create a strong password" required minlength="8">
-                        <button type="button" class="toggle-password" id="togglePassword" aria-label="Toggle password visibility">
-                            <svg class="eye-icon" id="eyeOpen" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                                <circle cx="12" cy="12" r="3"/>
-                            </svg>
-                            <svg class="eye-icon hidden" id="eyeClosed" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
-                                <line x1="1" y1="1" x2="23" y2="23"/>
-                            </svg>
-                        </button>
-                    </div>
-                    <span class="error-msg" id="passwordError">Password must be at least 8 characters</span>
-                </div>
-
-                <!-- Confirm Password -->
-                <div class="form-group">
-                    <label for="confirmPassword">Confirm Password</label>
-                    <div class="input-wrapper">
-                        <input type="password" id="confirmPassword" name="confirm_password" placeholder="Re-enter your password" required>
-                        <button type="button" class="toggle-password" id="toggleConfirmPassword" aria-label="Toggle confirm password visibility">
-                            <svg class="eye-icon" id="eyeOpen2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                                <circle cx="12" cy="12" r="3"/>
-                            </svg>
-                            <svg class="eye-icon hidden" id="eyeClosed2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
-                                <line x1="1" y1="1" x2="23" y2="23"/>
-                            </svg>
-                        </button>
-                    </div>
-                    <span class="error-msg" id="confirmPasswordError">Passwords do not match</span>
-                </div>
-
-                <!-- Admin Toggle -->
-                <div class="admin-toggle-wrap">
-                    <label class="admin-toggle">
-                        <input type="checkbox" id="adminToggle">
-                        <span class="toggle-slider"></span>
-                        <span class="toggle-label">Register as Admin</span>
+                    <label class="remember-toggle">
+                        <input type="checkbox" id="rememberMe" name="remember_me" checked>
+                        <span class="remember-label">Remember me on this device</span>
                     </label>
-                </div>
+                    <p class="field-hint">Stay signed in on this device so you don't have to log in every time you visit ExamVault.</p>
+                </section>
 
-                <!-- Admin Token Field (hidden by default) -->
-                <div class="form-group admin-token-group is-visible" id="adminTokenGroup">
-                    <label for="adminToken">Admin Token</label>
-                    <div class="input-wrapper">
-                        <input type="password" id="adminToken" name="admin_token" placeholder="Enter your admin token">
-                        <button type="button" class="toggle-password" id="toggleToken" aria-label="Toggle token visibility">
-                            <svg class="eye-icon" id="eyeOpen3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                                <circle cx="12" cy="12" r="3"/>
-                            </svg>
-                            <svg class="eye-icon hidden" id="eyeClosed3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
-                                <line x1="1" y1="1" x2="23" y2="23"/>
-                            </svg>
-                        </button>
-                    </div>
-                    <span class="error-msg" id="tokenError">Admin token is required</span>
+                <div class="registration-actions">
+                    <button type="button" class="btn btn--secondary" id="backButton">Back</button>
+                    <button type="button" class="btn btn--primary" id="nextButton">Next</button>
                 </div>
-
-                <!-- Submit -->
-                <button type="submit" class="btn btn--primary btn--full" id="submitBtn">
-                    Create Account
-                </button>
+                <p class="form-status" id="formStatus" role="alert"></p>
             </form>
 
             <div class="register-footer">
@@ -180,154 +127,201 @@
         </div>
     </main>
 
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="container">
-            <div class="footer-bottom">
-                <p>© 2026 ExamVault. All rights reserved.</p>
-            </div>
-        </div>
-    </footer>
-
     <script>
-        // Fetch and populate programmes on page load
-        async function loadProgrammes() {
-            try {
-                const response = await fetch('/course-management/programmes');
-                if (!response.ok) throw new Error('Failed to fetch programmes');
-                const programmes = await response.json();
-                
-                const programmeSelect = document.getElementById('programme');
-                programmes.forEach(prog => {
-                    const option = document.createElement('option');
-                    option.value = prog.id;
-                    option.textContent = prog.name;
-                    option.dataset.collegeName = prog.college_name;
-                    programmeSelect.appendChild(option);
-                });
-            } catch (error) {
-                console.error('Error loading programmes:', error);
-            }
+        const form = document.getElementById('registerForm');
+        const panels = [...document.querySelectorAll('[data-step-panel]')];
+        const progress = [...document.querySelectorAll('.progress-step')];
+        const backButton = document.getElementById('backButton');
+        const nextButton = document.getElementById('nextButton');
+        const submitButton = document.getElementById('nextButton');
+        const status = document.getElementById('formStatus');
+        let currentStep = 1;
+        let securityQuestions = [];
+        let emailAvailable = null;
+        let emailCheckRequest = 0;
+
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = 'toast toast-' + type;
+            const icon = type === 'success'
+                ? '<span class="toast-icon" aria-hidden="true">✓</span>'
+                : '<span class="toast-icon" aria-hidden="true">!</span>';
+            toast.innerHTML = icon + '<span>' + message + '</span>';
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.classList.add('toast-out');
+                toast.addEventListener('animationend', () => toast.remove());
+            }, 3000);
         }
 
-        // Populate college field when programme is selected
-        document.getElementById('programme').addEventListener('change', function() {
-            const selectedOption = this.options[this.selectedIndex];
-            const collegeInput = document.getElementById('college');
-            if (selectedOption.value) {
-                collegeInput.value = selectedOption.dataset.collegeName || '';
-            } else {
-                collegeInput.value = '';
+        function wait(milliseconds) {
+            return new Promise(resolve => setTimeout(resolve, milliseconds));
+        }
+
+        function showError(id, visible) {
+            document.getElementById(id)?.classList.toggle('is-visible', visible);
+        }
+
+        function setStatus(message, isError = false) {
+            status.textContent = message;
+            status.classList.toggle('is-error', isError);
+        }
+
+        function validEmail(value) {
+            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+        }
+
+        function validateStep(step) {
+            let valid = true;
+            if (step === 1) {
+                const first = document.getElementById('firstName').value.trim();
+                const last = document.getElementById('lastName').value.trim();
+                showError('firstNameError', !first);
+                showError('lastNameError', !last);
+                valid = Boolean(first && last);
+            } else if (step === 2) {
+                const email = document.getElementById('email').value.trim();
+                const password = document.getElementById('password').value;
+                const confirmation = document.getElementById('confirmPassword').value;
+                showError('emailError', !validEmail(email));
+                showError('passwordError', password.length < 8);
+                showError('confirmPasswordError', !confirmation || password !== confirmation);
+                valid = validEmail(email) && emailAvailable === true &&
+                    password.length >= 8 && password === confirmation;
+            } else if (step === 3 && !form.dataset.recoverySkipped) {
+                const selected = [...document.querySelectorAll('.security-question')];
+                valid = selected.length === 2 && selected.every(item => item.querySelector('select').value && item.querySelector('input').value.trim());
+                if (!valid) setStatus('Complete both security questions, or skip this step.', true);
+            } else if (step === 4) {
+                const programme = document.getElementById('programme').value;
+                const level = document.getElementById('level').value;
+                showError('programmeError', !programme);
+                showError('levelError', !level);
+                valid = Boolean(programme && level);
             }
-        });
+            return valid;
+        }
 
-        // Load programmes when page loads
-        document.addEventListener('DOMContentLoaded', loadProgrammes);
-
-        // Admin toggle logic
-        const adminToggle = document.getElementById('adminToggle');
-        const adminTokenGroup = document.getElementById('adminTokenGroup');
-        const adminTokenInput = document.getElementById('adminToken');
-        const roleField = document.getElementById('roleField');
-
-        adminToggle.addEventListener('change', function() {
-            if (this.checked) {
-                adminTokenGroup.classList.add('is-visible');
-                adminTokenInput.setAttribute('required', 'required');
-                roleField.value = 'admin';
-            } else {
-                adminTokenGroup.classList.remove('is-visible');
-                adminTokenInput.removeAttribute('required');
-                adminTokenInput.value = '';
-                roleField.value = 'user';
-            }
-        });
-
-        // Password visibility toggles
-        function setupToggle(btnId, inputId, openId, closedId) {
-            const btn = document.getElementById(btnId);
-            const input = document.getElementById(inputId);
-            const openIcon = document.getElementById(openId);
-            const closedIcon = document.getElementById(closedId);
-
-            btn.addEventListener('click', function() {
-                const isHidden = input.type === 'password';
-                input.type = isHidden ? 'text' : 'password';
-                openIcon.classList.toggle('hidden', isHidden);
-                closedIcon.classList.toggle('hidden', !isHidden);
+        function renderSecurityQuestions() {
+            const container = document.getElementById('securityQuestions');
+            container.innerHTML = '';
+            [0, 1].forEach(index => {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'security-question';
+                wrapper.innerHTML = `<label>Question ${index + 1}</label><div class="select-wrapper"><select required><option value="">Select a question</option>${securityQuestions.map(q => `<option value="${q.id}">${q.text}</option>`).join('')}</select><span class="select-chevron" aria-hidden="true">⌄</span></div><input type="text" placeholder="Your answer" required>`;
+                container.appendChild(wrapper);
+            });
+            container.addEventListener('change', () => {
+                const values = [...container.querySelectorAll('select')].map(select => select.value);
+                container.querySelectorAll('option').forEach(option => {
+                    option.hidden = Boolean(option.value && values.includes(option.value) && !option.selected);
+                });
             });
         }
 
-        setupToggle('togglePassword', 'password', 'eyeOpen', 'eyeClosed');
-        setupToggle('toggleConfirmPassword', 'confirmPassword', 'eyeOpen2', 'eyeClosed2');
-        setupToggle('toggleToken', 'adminToken', 'eyeOpen3', 'eyeClosed3');
-
-        // Form validation
-        const form = document.getElementById('registerForm');
-
-        function showError(id, show) {
-            document.getElementById(id).classList.toggle('is-visible', show);
+        function setStep(step) {
+            currentStep = step;
+            panels.forEach(panel => panel.classList.toggle('is-active', Number(panel.dataset.stepPanel) === step));
+            progress.forEach(item => item.classList.toggle('is-active', Number(item.dataset.step) <= step));
+            backButton.style.display = step === 1 ? 'none' : 'inline-flex';
+            nextButton.type = step === 4 ? 'submit' : 'button';
+            nextButton.textContent = step === 4 ? 'Create Account' : 'Next';
+            setStatus('');
         }
 
-        function validateEmail(email) {
-            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-        }
-
-        form.addEventListener('submit', function(e) {
-            e.preventDefault();
-            let valid = true;
-
-            // First name
-            const firstName = document.getElementById('firstName').value.trim();
-            showError('firstNameError', !firstName);
-            if (!firstName) valid = false;
-
-            // Last name
-            const lastName = document.getElementById('lastName').value.trim();
-            showError('lastNameError', !lastName);
-            if (!lastName) valid = false;
-
-            // Email
+        async function checkEmailAvailability() {
             const email = document.getElementById('email').value.trim();
-            showError('emailError', !validateEmail(email));
-            if (!validateEmail(email)) valid = false;
+            if (!validEmail(email)) return false;
+            const requestId = ++emailCheckRequest;
+            emailAvailable = null;
+            showToast('Checking email availability', 'info');
+            try {
+                const response = await fetch('/auth/check-email?email=' + encodeURIComponent(email));
+                if (!response.ok) throw new Error('Unable to check email availability');
+                const result = await response.json();
+                if (requestId !== emailCheckRequest) return false;
+                emailAvailable = result.available === true;
+                if (!emailAvailable) {
+                    showToast('This email has already been used', 'error');
+                }
+                return emailAvailable;
+            } catch (error) {
+                if (requestId === emailCheckRequest) {
+                    emailAvailable = null;
+                    showToast('Unable to check this email right now', 'error');
+                }
+                return false;
+            }
+        }
 
-            // Level
-            const level = document.getElementById('level').value;
-            showError('levelError', !level);
-            if (!level) valid = false;
+        nextButton.addEventListener('click', async event => {
+            if (currentStep === 4) return;
+            event.preventDefault();
+            if (currentStep === 2 && !await checkEmailAvailability()) return;
+            if (validateStep(currentStep)) setStep(currentStep + 1);
+        });
+        backButton.addEventListener('click', () => setStep(currentStep - 1));
+        document.getElementById('skipRecovery').addEventListener('click', () => {
+            form.dataset.recoverySkipped = 'true';
+            setStep(4);
+        });
+        document.getElementById('email').addEventListener('input', () => {
+            emailAvailable = null;
+            emailCheckRequest++;
+        });
 
-            // Programme
-            const programme = document.getElementById('programme').value;
-            showError('programmeError', !programme);
-            if (!programme) valid = false;
+        fetch('/course-management/programmes')
+            .then(response => response.ok ? response.json() : Promise.reject(new Error('Unable to load programmes')))
+            .then(programmes => programmes.forEach(programme => {
+                const option = document.createElement('option');
+                option.value = programme.id;
+                option.textContent = programme.name;
+                option.dataset.collegeName = programme.college_name;
+                document.getElementById('programme').appendChild(option);
+            }))
+            .catch(() => { setStatus('Unable to load programmes. Please refresh and try again.', true); });
 
-            // Password
-            const password = document.getElementById('password').value;
-            showError('passwordError', password.length < 8);
-            if (password.length < 8) valid = false;
+        fetch('/auth/security-questions')
+            .then(response => response.json())
+            .then(questions => { securityQuestions = questions; renderSecurityQuestions(); })
+            .catch(() => { setStatus('Recovery questions are unavailable right now.', true); });
 
-            // Confirm password
-            const confirmPassword = document.getElementById('confirmPassword').value;
-            showError('confirmPasswordError', password !== confirmPassword || !confirmPassword);
-            if (password !== confirmPassword || !confirmPassword) valid = false;
-
-            // Admin token
-            const token = adminTokenInput.value.trim();
-            showError('tokenError', !token);
-            if (!token) valid = false;
-
-            // if (valid) {
-            //     // Submit the form — replace this with your actual API call
-            //     console.log('Form valid! Submitting...');
-            //     const formData = new FormData(form);
-            //     const data = Object.fromEntries(formData.entries());
-            //     console.log(data);
-            //     // fetch('/api/register', { method: 'POST', body: JSON.stringify(data), headers: {'Content-Type': 'application/json'} });
-            // }
+        form.addEventListener('submit', async event => {
+            event.preventDefault();
+            if (!validateStep(4)) return;
+            const answers = form.dataset.recoverySkipped ? [] : [...document.querySelectorAll('.security-question')].map(item => ({
+                question_id: item.querySelector('select').value,
+                answer: item.querySelector('input').value,
+            }));
+            submitButton.disabled = true;
+            showToast('Creating account', 'info');
+            await new Promise(resolve => requestAnimationFrame(resolve));
+            try {
+                const response = await fetch('/auth/register', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        first_name: document.getElementById('firstName').value.trim(),
+                        last_name: document.getElementById('lastName').value.trim(),
+                        email: document.getElementById('email').value.trim(),
+                        password: document.getElementById('password').value,
+                        level: document.getElementById('level').value,
+                        programme_id: Number(document.getElementById('programme').value),
+                        remember_me: document.getElementById('rememberMe').checked,
+                        security_answers: answers,
+                    }),
+                });
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.detail || 'Unable to create account');
+                showToast('Account Created', 'success');
+                await wait(2500);
+                window.location.href = data.redirect || '/dashboard';
+            } catch (error) {
+                showToast(error.message || 'Unable to create account.', 'error');
+                submitButton.disabled = false;
+            }
         });
     </script>
-    <script src="{{url_for('static',path='js/base.js')}}"></script>
-
 </body>
 </html>

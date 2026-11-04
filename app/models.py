@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Integer, ForeignKey, DateTime
+from sqlalchemy import Boolean, Column, String, Integer, ForeignKey, DateTime
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 
@@ -30,8 +30,43 @@ class User(Base):
     role = Column(String)
     hashed_password = Column(String)
 
-    past_questions = relationship('Pq',back_populates='uploader')
+    past_questions = relationship('Pq', back_populates='uploader')
     programme = relationship('Programme', back_populates='users')
+    auth_sessions = relationship(
+        'AuthSession',
+        back_populates='user',
+        cascade='all, delete-orphan',
+    )
+    security_answers = relationship(
+        'SecurityAnswer',
+        back_populates='user',
+        cascade='all, delete-orphan',
+    )
+
+
+class AuthSession(Base):
+    __tablename__ = 'auth_sessions'
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    user_id = Column(Integer, ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
+    token_hash = Column(String, unique=True, nullable=False)
+    created_at = Column(DateTime, nullable=False)
+    expires_at = Column(DateTime, nullable=True)
+    revoked_at = Column(DateTime, nullable=True)
+    is_persistent = Column(Boolean, nullable=False, default=False)
+
+    user = relationship('User', back_populates='auth_sessions')
+
+
+class SecurityAnswer(Base):
+    __tablename__ = 'security_answers'
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    user_id = Column(Integer, ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
+    question_id = Column(String, nullable=False)
+    answer_hash = Column(String, nullable=False)
+
+    user = relationship('User', back_populates='security_answers')
 
 
 

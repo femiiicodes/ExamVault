@@ -1,6 +1,6 @@
 from pydantic import BaseModel,ConfigDict
 
-from app.models import User
+from app.models import AuthSession, User
 from typing import Annotated
 from fastapi import Depends
 from app.routers.auth import get_current_user,check_password, hash_password
@@ -9,6 +9,7 @@ from typing import Optional
 from fastapi import HTTPException,status
 from app.database import get_db
 from sqlalchemy.orm import Session
+from datetime import datetime, timezone
 
 router = APIRouter(prefix='/users',tags=['users'])
 db_dependency = Annotated[Session,Depends(get_db)]
@@ -80,6 +81,13 @@ async def change_password(
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,detail='Old password incorrect')
 
     user.hashed_password = hash_password(new_password)
+    db.query(AuthSession).filter(
+        AuthSession.user_id == user.id,
+        AuthSession.revoked_at.is_(None),
+    ).update(
+        {'revoked_at': datetime.now(timezone.utc)},
+        synchronize_session=False,
+    )
     db.commit()
 
 @router.delete('/delete-user', status_code=204)
