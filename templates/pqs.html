@@ -425,7 +425,7 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <a class="btn btn-primary" id="viewPqDownload" target="_blank" rel="noopener">Open PDF</a>
+                <a class="btn btn-primary" id="viewPqDownload" target="_blank" rel="noopener">⬇ Download PDF <small>★</small></a>
                 <button class="btn btn-secondary" onclick="closeModal('viewPqModal')">Close</button>
             </div>
         </div>
@@ -472,6 +472,21 @@
         let viewPqTotalPages = 1;
         let viewPqZoomLevel = 1;
         let viewPqRenderToken = 0;
+
+        function protectPdfPages(viewportId, pageSelector) {
+            const viewport = document.getElementById(viewportId);
+            if (!viewport) return;
+
+            viewport.addEventListener('contextmenu', event => {
+                if (event.target instanceof Element && event.target.closest(pageSelector)) {
+                    event.preventDefault();
+                }
+            });
+        }
+
+        protectPdfPages('pdfViewport', '#pdfCanvas');
+        protectPdfPages('reviewPdfViewport', '#reviewPdfCanvas');
+        protectPdfPages('viewPqViewport', '.pdf-viewer-page');
 
         // Filters
         let activeFilters = { course: '', session: '', type: '', uploader: '' };
@@ -1126,5 +1141,6 @@
         });
     </script>
 
+{% include 'partials/site-footer.html' %}
 </body>
 </html>

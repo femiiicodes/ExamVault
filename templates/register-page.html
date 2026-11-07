@@ -74,9 +74,8 @@
 
                 <section class="registration-step" data-step-panel="3">
                     <h2>Account recovery</h2>
-                    <p class="step-intro">Forgot your password? Security questions give you another way to recover your account. Setting them up is optional, and you can always do it later.</p>
+                    <p class="step-intro">Set two security questions to protect your account and recover it if you forget your password.</p>
                     <div id="securityQuestions"></div>
-                    <button type="button" class="btn btn--secondary" id="skipRecovery">Skip for now</button>
                 </section>
 
                 <section class="registration-step" data-step-panel="4">
@@ -189,10 +188,10 @@
                 showError('confirmPasswordError', !confirmation || password !== confirmation);
                 valid = validEmail(email) && emailAvailable === true &&
                     password.length >= 8 && password === confirmation;
-            } else if (step === 3 && !form.dataset.recoverySkipped) {
+            } else if (step === 3) {
                 const selected = [...document.querySelectorAll('.security-question')];
                 valid = selected.length === 2 && selected.every(item => item.querySelector('select').value && item.querySelector('input').value.trim());
-                if (!valid) setStatus('Complete both security questions, or skip this step.', true);
+                if (!valid) setStatus('Complete both security questions to continue.', true);
             } else if (step === 4) {
                 const programme = document.getElementById('programme').value;
                 const level = document.getElementById('level').value;
@@ -262,10 +261,6 @@
             if (validateStep(currentStep)) setStep(currentStep + 1);
         });
         backButton.addEventListener('click', () => setStep(currentStep - 1));
-        document.getElementById('skipRecovery').addEventListener('click', () => {
-            form.dataset.recoverySkipped = 'true';
-            setStep(4);
-        });
         document.getElementById('email').addEventListener('input', () => {
             emailAvailable = null;
             emailCheckRequest++;
@@ -290,7 +285,7 @@
         form.addEventListener('submit', async event => {
             event.preventDefault();
             if (!validateStep(4)) return;
-            const answers = form.dataset.recoverySkipped ? [] : [...document.querySelectorAll('.security-question')].map(item => ({
+            const answers = [...document.querySelectorAll('.security-question')].map(item => ({
                 question_id: item.querySelector('select').value,
                 answer: item.querySelector('input').value,
             }));
@@ -323,5 +318,6 @@
             }
         });
     </script>
+{% include 'partials/site-footer.html' %}
 </body>
 </html>

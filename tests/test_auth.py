@@ -1,4 +1,4 @@
-from app.models import User
+from app.models import AuthSession, User
 
 
 def test_login_success(client,sample_user):
@@ -49,6 +49,10 @@ def test_register_ignores_public_admin_token(client, sample_user):
         'programme_id': sample_user.programme_id,
         'role': 'user',
         'password': 'Password',
+        'security_answers': [
+            {'question_id': 'q1', 'answer': 'Blue House'},
+            {'question_id': 'q2', 'answer': 'Accra'},
+        ],
         'admin_token': 'wrong-key'
     }
 
@@ -67,6 +71,10 @@ def test_register_creates_regular_user(client, sample_user, test_db):
         'programme_id': sample_user.programme_id,
         'role': 'admin',
         'password': 'Password',
+        'security_answers': [
+            {'question_id': 'q1', 'answer': 'Blue House'},
+            {'question_id': 'q2', 'answer': 'Accra'},
+        ],
         'admin_token': 'not-used'
     }
 
@@ -77,7 +85,7 @@ def test_register_creates_regular_user(client, sample_user, test_db):
     assert created.role == 'user'
 
 
-def test_register_hashes_optional_security_answers(client, sample_user, test_db):
+def test_register_hashes_security_answers(client, sample_user, test_db):
     payload = {
         'first_name': 'Recovery',
         'last_name': 'User',
@@ -97,6 +105,21 @@ def test_register_hashes_optional_security_answers(client, sample_user, test_db)
     user = test_db.query(User).filter(User.email == payload['email']).one()
     assert len(user.security_answers) == 2
     assert all(answer.answer_hash != 'blue house' for answer in user.security_answers)
+
+
+def test_register_requires_security_answers(client, sample_user):
+    payload = {
+        'first_name': 'No',
+        'last_name': 'Recovery',
+        'email': 'no-recovery@example.com',
+        'level': '300',
+        'programme_id': sample_user.programme_id,
+        'password': 'Password',
+    }
+
+    response = client.post('/auth/register', json=payload)
+
+    assert response.status_code == 422
 
 
 def test_check_email_reports_available_and_used_addresses(client, sample_user):
@@ -138,15 +161,211 @@ def test_logout_revokes_refresh_session(client, sample_user, test_db):
     assert client.post('/auth/refresh').status_code == 401
 
 
+def test_security_question_recovery_returns_single_use_token(client, sample_user, test_db):
+    from app.models import SecurityAnswer
+    from app.routers.auth import hash_password
+
+    test_db.add_all([
+        SecurityAnswer(
+            user_id=sample_user.id,
+            question_id='q1',
+            answer_hash=hash_password('blue house'),
+        ),
+        SecurityAnswer(
+            user_id=sample_user.id,
+            question_id='q2',
+            answer_hash=hash_password('accra'),
+        ),
+    ])
+    test_db.commit()
+
+    questions = client.post(
+        '/auth/password-recovery/security-questions',
+        json={'email': sample_user.email},
+    )
+    assert questions.status_code == 200
+    assert [question['id'] for question in questions.json()['questions']] == ['q1', 'q2']
+
+    verified = client.post(
+        '/auth/password-recovery/security-verify',
+        json={
+            'email': sample_user.email,
+            'answers': [
+                {'question_id': 'q1', 'answer': ' Blue   House '},
+                {'question_id': 'q2', 'answer': 'Accra'},
+            ],
+        },
+    )
+    assert verified.status_code == 200
+    token = verified.json()['token']
+
+    reset = client.post(
+        '/auth/password-reset/confirm',
+        json={'token': token, 'password': 'NewPassword', 'confirm_password': 'NewPassword'},
+    )
+    assert reset.status_code == 200
+    assert client.post(
+        '/auth/password-reset/confirm',
+        json={'token': token, 'password': 'AnotherPassword', 'confirm_password': 'AnotherPassword'},
+    ).status_code == 400
 
 
+def test_recovery_start_chooses_security_questions_without_sending_email(
+    client,
+    sample_user,
+    monkeypatch,
+    test_db,
+):
+    from app.models import SecurityAnswer
+    from app.routers.auth import hash_password
+
+    sent = []
+    monkeypatch.setattr(
+        'app.routers.auth.send_password_reset_email',
+        lambda recipient, reset_url: sent.append((recipient, reset_url)),
+    )
+    test_db.add_all([
+        SecurityAnswer(user_id=sample_user.id, question_id='q1', answer_hash=hash_password('one')),
+        SecurityAnswer(user_id=sample_user.id, question_id='q2', answer_hash=hash_password('two')),
+    ])
+    test_db.commit()
+
+    response = client.post(
+        '/auth/password-recovery/start',
+        json={'email': sample_user.email},
+    )
+
+    assert response.status_code == 200
+    assert response.json()['method'] == 'security_questions'
+    assert len(response.json()['questions']) == 2
+    assert sent == []
 
 
+def test_recovery_start_sends_email_only_without_security_questions(
+    client,
+    sample_user,
+    monkeypatch,
+):
+    monkeypatch.setenv('APP_BASE_URL', 'https://example.com')
+    sent = []
+    monkeypatch.setattr(
+        'app.routers.auth.send_password_reset_email',
+        lambda recipient, reset_url: sent.append((recipient, reset_url)),
+    )
+
+    response = client.post(
+        '/auth/password-recovery/start',
+        json={'email': sample_user.email},
+    )
+
+    assert response.status_code == 200
+    assert response.json()['method'] == 'email'
+    assert sent[0][0] == sample_user.email
 
 
+def test_security_question_recovery_rejects_incorrect_answer(client, sample_user, test_db):
+    from app.models import SecurityAnswer
+    from app.routers.auth import hash_password
+
+    test_db.add_all([
+        SecurityAnswer(user_id=sample_user.id, question_id='q1', answer_hash=hash_password('one')),
+        SecurityAnswer(user_id=sample_user.id, question_id='q2', answer_hash=hash_password('two')),
+    ])
+    test_db.commit()
+
+    response = client.post(
+        '/auth/password-recovery/security-verify',
+        json={
+            'email': sample_user.email,
+            'answers': [
+                {'question_id': 'q1', 'answer': 'wrong'},
+                {'question_id': 'q2', 'answer': 'two'},
+            ],
+        },
+    )
+
+    assert response.status_code == 400
+    assert 'could not be verified' in response.json()['detail']
 
 
+def test_password_reset_rejects_expired_token(client, sample_user, test_db):
+    from datetime import datetime, timedelta, timezone
+    from app.models import PasswordResetToken
+    from app.routers.auth import hash_token
 
+    raw_token = 'expired-recovery-token-' + ('x' * 32)
+    test_db.add(PasswordResetToken(
+        user_id=sample_user.id,
+        token_hash=hash_token(raw_token),
+        expires_at=(datetime.now(timezone.utc) - timedelta(minutes=1)).replace(tzinfo=None),
+        created_at=(datetime.now(timezone.utc) - timedelta(minutes=31)).replace(tzinfo=None),
+    ))
+    test_db.commit()
+    stored_token = test_db.query(PasswordResetToken).filter_by(token_hash=hash_token(raw_token)).one()
+    assert stored_token.expires_at < datetime.now(timezone.utc).replace(tzinfo=None)
+
+    response = client.post(
+        '/auth/password-reset/confirm',
+        json={'token': raw_token, 'password': 'NewPassword', 'confirm_password': 'NewPassword'},
+    )
+
+    assert response.status_code == 400
+    assert 'invalid or has expired' in response.json()['detail']
+
+
+def test_password_reset_revokes_existing_sessions_and_email_is_generic(
+    client,
+    sample_user,
+    monkeypatch,
+    test_db,
+):
+    monkeypatch.setenv('APP_BASE_URL', 'https://example.com')
+    sent = []
+    monkeypatch.setattr(
+        'app.routers.auth.send_password_reset_email',
+        lambda recipient, reset_url: sent.append((recipient, reset_url)),
+    )
+    from app.routers import auth
+    auth._recovery_attempts.clear()
+
+    response = client.post(
+        '/auth/password-reset/request-email',
+        json={'email': sample_user.email},
+    )
+    unknown_response = client.post(
+        '/auth/password-reset/request-email',
+        json={'email': 'unknown@example.com'},
+    )
+
+    assert response.status_code == unknown_response.status_code == 202
+    assert response.json() == unknown_response.json()
+    assert sent[0][0] == sample_user.email
+
+    client.post(
+        '/auth/token',
+        data={'username': sample_user.email, 'password': 'Password', 'client_id': 'remember'},
+    )
+    token = sent[0][1].split('token=', 1)[1]
+    reset = client.post(
+        '/auth/password-reset/confirm',
+        json={'token': token, 'password': 'NewPassword', 'confirm_password': 'NewPassword'},
+    )
+    assert reset.status_code == 200
+    assert test_db.query(AuthSession).filter(
+        AuthSession.user_id == sample_user.id,
+        AuthSession.revoked_at.is_(None),
+    ).count() == 0
+
+
+def test_forgot_password_page_contains_valid_submit_flow(client):
+    response = client.get('/auth/forgot-password-page')
+
+    assert response.status_code == 200
+    html = response.text
+    assert 'event.preventDefault();' in html
+    assert "requestJson('/auth/password-recovery/start', {email})" in html
+    assert "recovery.method === 'security_questions'" in html
+    assert "window.location.href = '/auth/reset-password-page?token='" in html
 
 
 

@@ -1,4 +1,4 @@
-from sqlalchemy import Boolean, Column, String, Integer, ForeignKey, DateTime
+from sqlalchemy import Boolean, Column, String, Integer, ForeignKey, DateTime, Index, UniqueConstraint
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 
@@ -42,6 +42,9 @@ class User(Base):
         back_populates='user',
         cascade='all, delete-orphan',
     )
+    payments = relationship('Payment', back_populates='user')
+    entitlements = relationship('Entitlement', back_populates='user')
+    daily_views = relationship('DailyPqView', back_populates='user')
 
 
 class AuthSession(Base):
@@ -67,6 +70,19 @@ class SecurityAnswer(Base):
     answer_hash = Column(String, nullable=False)
 
     user = relationship('User', back_populates='security_answers')
+
+
+class PasswordResetToken(Base):
+    __tablename__ = 'password_reset_tokens'
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    user_id = Column(Integer, ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
+    token_hash = Column(String, unique=True, nullable=False, index=True)
+    expires_at = Column(DateTime, nullable=False)
+    used_at = Column(DateTime, nullable=True)
+    created_at = Column(DateTime, nullable=False)
+
+    user = relationship('User')
 
 
 
@@ -169,6 +185,88 @@ class ProgrammeCourse(Base):
     course = relationship(
         "Course",
         back_populates="programme_courses"
+    )
+
+
+class AcademicPeriod(Base):
+    __tablename__ = 'academic_periods'
+
+    id = Column(Integer, primary_key=True, index=True)
+    academic_session = Column(String, nullable=False)
+    semester = Column(String, nullable=False)
+    is_active = Column(Boolean, nullable=False, default=False)
+    created_at = Column(DateTime, nullable=False)
+
+    __table_args__ = (
+        UniqueConstraint('academic_session', 'semester', name='uq_academic_period_session_semester'),
+        Index('ix_academic_periods_active', 'is_active'),
+    )
+
+
+class AcademicPeriodSwitch(Base):
+    __tablename__ = 'academic_period_switches'
+
+    id = Column(Integer, primary_key=True, index=True)
+    previous_period_id = Column(Integer, ForeignKey('academic_periods.id'), nullable=True)
+    new_period_id = Column(Integer, ForeignKey('academic_periods.id'), nullable=False)
+    admin_user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    switched_at = Column(DateTime, nullable=False)
+
+
+class Payment(Base):
+    __tablename__ = 'payments'
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
+    academic_period_id = Column(Integer, ForeignKey('academic_periods.id'), nullable=False)
+    reference = Column(String, nullable=False, unique=True, index=True)
+    authorization_url = Column(String, nullable=True)
+    amount = Column(Integer, nullable=False)
+    currency = Column(String, nullable=False)
+    status = Column(String, nullable=False)
+    paystack_transaction_id = Column(String, nullable=True)
+    paid_at = Column(DateTime, nullable=True)
+    created_at = Column(DateTime, nullable=False)
+
+    user = relationship('User', back_populates='payments')
+
+
+class Entitlement(Base):
+    __tablename__ = 'entitlements'
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
+    academic_period_id = Column(Integer, ForeignKey('academic_periods.id'), nullable=False)
+    payment_id = Column(Integer, ForeignKey('payments.id'), nullable=False)
+    status = Column(String, nullable=False)
+    created_at = Column(DateTime, nullable=False)
+
+    user = relationship('User', back_populates='entitlements')
+    payment = relationship('Payment')
+
+    __table_args__ = (
+        UniqueConstraint('user_id', 'academic_period_id', name='uq_entitlement_user_period'),
+    )
+
+
+class DailyPqView(Base):
+    __tablename__ = 'daily_pq_views'
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
+    past_question_id = Column(Integer, ForeignKey('pqs.id', ondelete='CASCADE'), nullable=False)
+    view_date = Column(String, nullable=False)
+    viewed_at = Column(DateTime, nullable=False)
+
+    user = relationship('User', back_populates='daily_views')
+    past_question = relationship('Pq')
+
+    __table_args__ = (
+        UniqueConstraint(
+            'user_id', 'past_question_id', 'view_date',
+            name='uq_daily_pq_view_user_question_date',
+        ),
+        Index('ix_daily_pq_views_user_date', 'user_id', 'view_date'),
     )
 
 

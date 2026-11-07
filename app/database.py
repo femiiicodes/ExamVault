@@ -1,3 +1,4 @@
+
 from fastapi.params import Depends
 
 import app.models as models
@@ -6,13 +7,18 @@ from sqlalchemy.orm import sessionmaker, Session
 from typing import Annotated
 from dotenv import load_dotenv
 import os
-load_dotenv()
 
-# DATABASE_URL = "postgresql+psycopg2://postgres:Preserved28/4@localhost:5432/PastQuestionHub"
+env_file = os.getenv('ENV_FILE', '.env')
+load_dotenv(env_file)
+
 engine = create_engine(os.getenv('DATABASE_URL'))
-SessionLocal = sessionmaker(bind=engine,autoflush=False,autocommit=False)
 
-models.Base.metadata.create_all(bind=engine)
+SessionLocal = sessionmaker(
+    bind=engine,
+    autoflush=False,
+    autocommit=False
+)
+
 
 def get_db():
     db = SessionLocal()
@@ -20,6 +26,3 @@ def get_db():
         yield db
     finally:
         db.close()
-
-
-

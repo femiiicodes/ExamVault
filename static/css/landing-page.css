@@ -290,6 +290,12 @@ svg {
     line-height: 1;
 }
 
+.stat-number--wide {
+    font-size: 1.05rem;
+    line-height: 1.35;
+    white-space: nowrap;
+}
+
 .stat-label {
     display: block;
     font-size: 0.9rem;

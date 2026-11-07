@@ -148,6 +148,109 @@ body::before {
     position: relative;
     display: flex;
     align-items: center;
+    gap: 12px;
+}
+
+.support-contacts,
+.support-actions {
+    display: flex;
+    align-items: center;
+}
+
+.support-contacts {
+    gap: 9px;
+}
+
+.support-label {
+    color: var(--color-text-muted);
+    font-size: 0.78rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.support-actions {
+    gap: 6px;
+}
+
+.support-menu-wrap {
+    position: relative;
+}
+
+.support-icon-button {
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    padding: 7px;
+    border: 0;
+    border-radius: 50%;
+    color: #fff;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.support-icon-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 12px rgba(15, 23, 42, 0.2);
+}
+
+.support-icon-button svg {
+    width: 18px;
+    height: 18px;
+    fill: currentColor;
+}
+
+.support-icon-button--telegram {
+    background: #229ed9;
+}
+
+.support-icon-button--whatsapp {
+    background: #25d366;
+}
+
+.support-dropdown {
+    position: absolute;
+    top: calc(100% + 12px);
+    right: 0;
+    display: grid;
+    gap: 3px;
+    width: 190px;
+    padding: 10px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-card-bg);
+    box-shadow: 0 10px 32px rgba(15, 23, 42, 0.16);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-8px);
+    transition: all 0.2s ease;
+    z-index: 1100;
+}
+
+.support-dropdown.is-open {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.support-dropdown-title {
+    padding: 4px 8px 7px;
+    color: var(--color-text-muted);
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.support-dropdown a {
+    padding: 9px 8px;
+    border-radius: var(--radius-sm);
+    color: var(--color-text);
+    font-size: 0.88rem;
+    font-weight: 600;
+}
+
+.support-dropdown a:hover {
+    background: #e0f2fe;
+    color: #0284c7;
 }
 
 .account-btn {
@@ -265,6 +368,72 @@ body::before {
 
 .name-highlight {
     color: var(--color-primary);
+}
+
+.free-access-banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    max-width: 900px;
+    margin: -8px 0 28px;
+    padding: 18px 20px;
+    border: 1px solid #bfdbfe;
+    border-radius: var(--radius-lg);
+    background: linear-gradient(110deg, #eff6ff 0%, #ffffff 68%, #dbeafe 100%);
+    box-shadow: 0 8px 24px rgba(30, 64, 175, 0.1);
+}
+
+.free-access-copy {
+    min-width: 0;
+}
+
+.free-access-heading {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    color: var(--color-primary-dark);
+    font-size: 0.98rem;
+}
+
+.free-access-icon {
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 9px;
+    background: var(--color-primary);
+    color: #fff;
+    font-size: 1.15rem;
+    font-weight: 700;
+}
+
+.free-access-copy p {
+    margin: 5px 0 0 37px;
+    color: var(--color-text-muted);
+    font-size: 0.86rem;
+}
+
+.free-access-button {
+    flex-shrink: 0;
+    min-height: 40px;
+    padding: 9px 16px;
+    border: 1px solid var(--color-primary);
+    border-radius: 10px;
+    background: var(--color-primary);
+    color: #fff;
+    font-family: inherit;
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 6px 14px rgba(29, 78, 216, 0.2);
+    transition: var(--transition);
+}
+
+.free-access-button:hover {
+    border-color: var(--color-primary-dark);
+    background: var(--color-primary-dark);
+    transform: translateY(-1px);
 }
 
 /* ============================================
@@ -705,14 +874,209 @@ body::before {
     background: #0f172a;
 }
 
+.payment-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 1100;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(15, 23, 42, 0.62);
+    backdrop-filter: blur(5px);
+}
+
+.payment-modal-card {
+    position: relative;
+    width: min(100%, 440px);
+    padding: 34px 32px 30px;
+    overflow: hidden;
+    border: 1px solid rgba(147, 197, 253, 0.55);
+    border-radius: 24px;
+    background: linear-gradient(145deg, #ffffff 0%, #eff6ff 100%);
+    box-shadow: 0 24px 70px rgba(15, 23, 42, 0.28);
+    text-align: center;
+    animation: payment-modal-in 0.22s ease-out;
+}
+
+.payment-modal-card::before {
+    position: absolute;
+    top: -90px;
+    right: -70px;
+    width: 210px;
+    height: 210px;
+    border-radius: 50%;
+    background: rgba(96, 165, 250, 0.16);
+    content: '';
+}
+
+.payment-modal-close {
+    position: absolute;
+    top: 12px;
+    right: 15px;
+    z-index: 1;
+    width: 32px;
+    height: 32px;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--color-text-muted);
+    font-size: 24px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.payment-modal-close:hover {
+    background: var(--color-primary-light);
+    color: var(--color-primary);
+}
+
+.payment-modal-icon {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 58px;
+    height: 58px;
+    margin: 0 auto 16px;
+    border-radius: 18px;
+    background: linear-gradient(135deg, #2563eb, #60a5fa);
+    color: #fff;
+    box-shadow: 0 10px 24px rgba(37, 99, 235, 0.28);
+}
+
+.payment-modal-icon svg {
+    width: 29px;
+    height: 29px;
+}
+
+.payment-modal-eyebrow {
+    position: relative;
+    color: var(--color-primary);
+    font-size: 0.76rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.payment-modal-card h2 {
+    position: relative;
+    margin: 7px 0 10px;
+    color: var(--color-text);
+    font-size: 1.55rem;
+    line-height: 1.2;
+}
+
+.payment-modal-card p {
+    position: relative;
+    margin: 0 auto;
+    max-width: 340px;
+    color: var(--color-text-muted);
+    font-size: 1rem;
+}
+
+.payment-modal-benefits {
+    position: relative;
+    display: grid;
+    gap: 8px;
+    margin: 22px 0 26px;
+    padding: 0;
+    color: var(--color-text);
+    list-style: none;
+    text-align: left;
+}
+
+.payment-modal-benefits li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.92rem;
+}
+
+.payment-modal-benefits li span {
+    display: grid;
+    place-items: center;
+    width: 21px;
+    height: 21px;
+    border-radius: 50%;
+    background: #dbeafe;
+    color: var(--color-primary);
+    font-size: 0.8rem;
+    font-weight: 700;
+}
+
+.payment-modal-actions {
+    position: relative;
+    display: grid;
+    gap: 10px;
+}
+
+.payment-modal-primary,
+.payment-modal-secondary {
+    width: 100%;
+    min-height: 46px;
+    border-radius: 11px;
+    font-family: inherit;
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.payment-modal-primary {
+    border: 1px solid var(--color-primary);
+    background: var(--color-primary);
+    color: #fff;
+    box-shadow: 0 8px 18px rgba(29, 78, 216, 0.22);
+}
+
+.payment-modal-primary:hover {
+    border-color: var(--color-primary-dark);
+    background: var(--color-primary-dark);
+    transform: translateY(-1px);
+}
+
+.payment-modal-primary:disabled {
+    cursor: wait;
+    opacity: 0.65;
+    transform: none;
+}
+
+.payment-modal-secondary {
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--color-text-muted);
+}
+
+.payment-modal-secondary:hover {
+    background: rgba(226, 232, 240, 0.65);
+    color: var(--color-text);
+}
+
+@keyframes payment-modal-in {
+    from {
+        opacity: 0;
+        transform: translateY(10px) scale(0.98);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
 /* ============================================
    Past Question Card
    ============================================ */
 .pq-card {
+    appearance: none;
+    width: 100%;
     background: var(--color-card-bg);
+    color: var(--color-text);
     border-radius: var(--radius-md);
     border: 1px solid var(--color-border);
     padding: 20px;
+    text-align: left;
+    font: inherit;
+    cursor: pointer;
     transition: var(--transition);
     display: flex;
     flex-direction: column;
@@ -724,6 +1088,32 @@ body::before {
     transform: translateY(-3px);
     box-shadow: var(--color-card-shadow-hover);
     border-color: rgba(29, 78, 216, 0.15);
+}
+
+.pq-card:active {
+    transform: translateY(-1px) scale(0.985);
+}
+
+.pq-card.is-clicked {
+    animation: pq-card-bounce 0.34s ease-out;
+}
+
+@keyframes pq-card-bounce {
+    0% {
+        transform: scale(1);
+    }
+
+    45% {
+        transform: scale(0.965);
+    }
+
+    75% {
+        transform: scale(1.018);
+    }
+
+    100% {
+        transform: scale(1);
+    }
 }
 
 .pq-card-top {
@@ -851,6 +1241,20 @@ body::before {
         font-size: 1.1rem;
     }
 
+    .support-label {
+        display: none;
+    }
+
+    .support-contacts {
+        gap: 5px;
+    }
+
+    .support-icon-button {
+        width: 30px;
+        height: 30px;
+        padding: 6px;
+    }
+
     .dashboard-main {
         padding: 20px 16px;
     }
@@ -858,6 +1262,19 @@ body::before {
     .welcome-heading {
         font-size: 1.5rem;
         margin-bottom: 20px;
+    }
+
+    .free-access-banner {
+        align-items: stretch;
+        flex-direction: column;
+        gap: 14px;
+        margin-top: -4px;
+        margin-bottom: 22px;
+        padding: 16px;
+    }
+
+    .free-access-button {
+        width: 100%;
     }
 
     .search-row {
@@ -875,6 +1292,15 @@ body::before {
 
     .stat-card {
         padding: 20px;
+    }
+
+    .payment-modal-card {
+        padding: 30px 22px 24px;
+        border-radius: 20px;
+    }
+
+    .payment-modal-card h2 {
+        font-size: 1.35rem;
     }
 
     .results-header {

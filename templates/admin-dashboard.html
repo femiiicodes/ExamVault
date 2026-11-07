@@ -78,6 +78,9 @@
                         </svg>
                         Colleges
                     </button>
+                    <button class="nav-item" data-page="academic-period" onclick="navigateTo('academic-period')">
+                        Academic Period
+                    </button>
                 </div>
 
                 <div class="nav-section">
@@ -263,6 +266,40 @@
                 </div>
 
                 <!-- ADMIN PROFILE — Basic Implementation -->
+                <div class="page-section" id="page-academic-period">
+                    <div class="empty-state" style="text-align:left;max-width:620px;">
+                        <h3>Active Academic Period</h3>
+                        <p id="activePeriodLabel">Loading active period...</p>
+                        <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:16px;align-items:flex-end;">
+                            <label for="periodSession" style="display:flex;flex-direction:column;gap:6px;min-width:180px;">
+                                <span style="font-weight:600;">Academic session</span>
+                                <select id="periodSession" name="academic_session" autocomplete="off">
+                                    <option value="2026/2027">2026/2027</option>
+                                    <option value="2027/2028">2027/2028</option>
+                                    <option value="2028/2029">2028/2029</option>
+                                    <option value="2029/2030">2029/2030</option>
+                                    <option value="2030/2031">2030/2031</option>
+                                </select>
+                            </label>
+                            <label for="periodSemester" style="display:flex;flex-direction:column;gap:6px;min-width:180px;">
+                                <span style="font-weight:600;">Semester</span>
+                                <select id="periodSemester" name="semester" autocomplete="off">
+                                <option>First Semester</option>
+                                <option>Second Semester</option>
+                                </select>
+                            </label>
+                            <button class="btn btn-primary" onclick="createAcademicPeriod()">Create Period</button>
+                        </div>
+                        <div id="periodList" style="margin-top:20px;"></div>
+                        <div id="switchPeriodBox" style="display:none;margin-top:20px;">
+                            <p><strong>Warning:</strong> switching will immediately expire all student access to the previous academic period.</p>
+                            <input id="adminPeriodPassword" type="password" placeholder="Confirm your admin password">
+                            <button class="btn btn-primary" onclick="switchAcademicPeriod()">Confirm Switch</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ADMIN PROFILE — Basic Implementation -->
                 <div class="page-section" id="page-settings">
                     <div class="profile-card">
                         <div class="profile-header">
@@ -344,6 +381,10 @@
                 title: 'Colleges',
                 subtitle: 'Manage college structures'
             },
+            'academic-period': {
+                title: 'Academic Period',
+                subtitle: 'Control the globally active semester'
+            },
             settings: {
                 title: 'Admin Profile',
                 subtitle: 'View your account information'
@@ -420,6 +461,68 @@
             document.getElementById('sidebarBackdrop').classList.remove('is-visible');
         }
 
+        let selectedPeriod = null;
+        async function loadAcademicPeriods() {
+            const response = await fetch('/admin/academic-periods');
+            if (!response.ok) return;
+            const periods = await response.json();
+            const active = periods.find(period => period.is_active);
+            document.getElementById('activePeriodLabel').textContent = active
+                ? active.academic_session + ' — ' + active.semester
+                : 'No active academic period configured.';
+            document.getElementById('periodList').innerHTML = periods.map(period =>
+                `<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #e2e8f0;">
+                    <span>${period.academic_session} — ${period.semester}</span>
+                    ${period.is_active ? '<strong>Active</strong>' : `<button class="btn btn-secondary" onclick="selectPeriod(${period.id})">Select</button>`}
+                </div>`
+            ).join('');
+        }
+
+        function selectPeriod(id) {
+            selectedPeriod = id;
+            document.getElementById('switchPeriodBox').style.display = 'block';
+        }
+
+        async function createAcademicPeriod() {
+            const academicSession = document.getElementById('periodSession').value.trim();
+            const semester = document.getElementById('periodSemester').value;
+            if (!/^\d{4}\/\d{4}$/.test(academicSession)) {
+                alert('Enter an academic session in the format 2026/2027.');
+                document.getElementById('periodSession').focus();
+                return;
+            }
+
+            const response = await fetch('/admin/academic-periods', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    academic_session: academicSession,
+                    semester: semester
+                })
+            });
+            if (!response.ok) { alert('Unable to create academic period.'); return; }
+            await loadAcademicPeriods();
+        }
+
+        async function switchAcademicPeriod() {
+            if (!selectedPeriod) return;
+            const periods = await (await fetch('/admin/academic-periods')).json();
+            const period = periods.find(item => item.id === selectedPeriod);
+            const response = await fetch('/admin/academic-periods/switch', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    academic_session: period.academic_session,
+                    semester: period.semester,
+                    password: document.getElementById('adminPeriodPassword').value,
+                    confirmation: true
+                })
+            });
+            if (!response.ok) { alert('Unable to switch academic period.'); return; }
+            document.getElementById('switchPeriodBox').style.display = 'none';
+            await loadAcademicPeriods();
+        }
+
         // ====== HASH ROUTING ======
         function handleHash() {
             const hash = window.location.hash.replace('#', '');
@@ -433,11 +536,13 @@
         // ====== INIT ======
         document.addEventListener('DOMContentLoaded', () => {
             populateStats();
+            loadAcademicPeriods();
             handleHash();
         });
 
         window.addEventListener('hashchange', handleHash);
     </script>
 
+{% include 'partials/site-footer.html' %}
 </body>
 </html>

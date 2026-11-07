@@ -1,7 +1,7 @@
 from fastapi import FastAPI, APIRouter, Request, Depends, HTTPException
 from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
-from app.routers import pqs, auth, users, course_management
+from app.routers import pqs, auth, users, course_management, payments
 from fastapi.templating import Jinja2Templates
 from app.database import get_db
 from app.routers.auth import get_current_user
@@ -19,6 +19,14 @@ app.mount('/static',StaticFiles(directory='static'),name='static')
 @app.get('/')
 async def render_landing_page(request:Request):
     return templates.TemplateResponse(request=request,name='landing-page.html')
+
+@app.get('/privacy-policy')
+async def render_privacy_policy(request: Request):
+    return templates.TemplateResponse(request=request, name='privacy-policy.html')
+
+@app.get('/terms-of-service')
+async def render_terms_of_service(request: Request):
+    return templates.TemplateResponse(request=request, name='terms-of-service.html')
 
 @app.get('/admin')
 async def render_admin_dashboard(request:Request, user:Annotated[User,Depends(get_current_user)]=None, db:Annotated[Session,Depends(get_db)]=None):
@@ -109,3 +117,4 @@ app.include_router(pqs.router)
 app.include_router(auth.router)
 app.include_router(users.router)
 app.include_router(course_management.router)
+app.include_router(payments.router)

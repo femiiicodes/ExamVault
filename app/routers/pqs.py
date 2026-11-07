@@ -4,14 +4,20 @@ from fastapi import APIRouter, Depends, UploadFile, File, Form
 from pydantic import BaseModel, ConfigDict
 from datetime import datetime
 from app.models import Course, ProgrammeCourse, Pq, User
+from app.services.access_control import (
+    finalize_view_authorization,
+    free_views_remaining,
+    preauthorize_view,
+    require_download_access,
+)
 from sqlalchemy.orm import Session
-from fastapi.responses import RedirectResponse, StreamingResponse
+from fastapi.responses import StreamingResponse
 from fastapi import HTTPException
 from app.routers.auth import get_current_user
 from fastapi.templating import Jinja2Templates
 from fastapi import Request
 from botocore.exceptions import ClientError
-from services.storage import upload_file, generate_download_url, get_file, get_file_metadata, delete_file
+from services.storage import upload_file, get_file, get_file_metadata, delete_file
 
 
 template = Jinja2Templates(directory='templates')
@@ -112,15 +118,30 @@ async def get_pq_file(
         raise HTTPException(status_code=404,detail='Pq not found')
     if not pq_model.file_key:
         raise HTTPException(status_code=404,detail='Pq file not found')
-    
-    url = generate_download_url(
-        pq_model.file_key,
-        expires_in=3600
+    require_download_access(db, user)
+    try:
+        metadata = get_file_metadata(pq_model.file_key)
+        body = get_file(pq_model.file_key)['Body']
+    except ClientError as error:
+        raise HTTPException(status_code=404, detail='Pq file not found') from error
+
+    def stream_body():
+        try:
+            yield from body.iter_chunks(chunk_size=1024 * 1024)
+        finally:
+            body.close()
+
+    return StreamingResponse(
+        stream_body(),
+        status_code=200,
+        headers={
+            'Content-Length': str(metadata['ContentLength']),
+            'Content-Disposition': f'attachment; filename="{pq_model.file_name}"',
+            'Cache-Control': 'private, no-store',
+            'Accept-Ranges': 'bytes',
+        },
+        media_type='application/pdf',
     )
-    # Add disposition header to URL if download is requested
-    if download:
-        url += f"&response-content-disposition=attachment%3B%20filename%3D{pq_model.file_name}"
-    return RedirectResponse(url=url, status_code=303)
 
 @router.get('/view_file')
 async def view_pq_file(
@@ -139,6 +160,7 @@ async def view_pq_file(
         raise HTTPException(status_code=404, detail='Pq file not found')
 
     try:
+        preauthorize_view(db, user, pq_model)
         metadata = get_file_metadata(pq_model.file_key)
         total_size = metadata['ContentLength']
         range_header = request.headers.get('range')
@@ -184,6 +206,7 @@ async def view_pq_file(
         else:
             metadata = get_file(pq_model.file_key)
 
+        finalize_view_authorization(db, user, pq_model)
         body = metadata['Body']
 
         def stream_body():
@@ -202,6 +225,15 @@ async def view_pq_file(
         raise
     except ClientError as error:
         raise HTTPException(status_code=404, detail='Pq file not found') from error
+
+
+@router.get('/access')
+def check_pq_access(id: int, db: db_dependency, user: user_dependency):
+    pq_model = db.query(Pq).filter(Pq.id == id).first()
+    if pq_model is None:
+        raise HTTPException(status_code=404, detail='Pq not found')
+    preauthorize_view(db, user, pq_model)
+    return {'allowed': True}
 
 
 @router.get('/pq_details',status_code=200)

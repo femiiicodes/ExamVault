@@ -41,16 +41,24 @@ def test_delete_pq(authenticated_client,sample_pq):
     assert response.status_code == 204
 
 
-def test_pq_file_download_returns_signed_url(authenticated_client, sample_pq):
-    """Test that download endpoint redirects to a signed R2 URL"""
+def test_pq_file_download_streams_pdf(authenticated_client, sample_pq, monkeypatch):
+    from app.routers import pqs
+
+    class FakeBody:
+        def iter_chunks(self, chunk_size):
+            yield b'%PDF-test'
+
+        def close(self):
+            pass
+
+    monkeypatch.setattr(pqs, 'get_file_metadata', lambda object_key: {'ContentLength': 9})
+    monkeypatch.setattr(pqs, 'get_file', lambda object_key: {'Body': FakeBody()})
     response = authenticated_client.get('/pqs/download_file', params={'id': sample_pq.id}, follow_redirects=False)
-    
-    # Should return a redirect to the signed URL
-    assert response.status_code == 303
-    assert 'location' in response.headers
-    # The location should contain the R2 bucket URL
-    location = response.headers['location']
-    assert '.r2.cloudflarestorage.com' in location or 'http' in location
+
+    assert response.status_code == 200
+    assert response.headers['content-disposition'].startswith('attachment;')
+    assert response.headers['cache-control'] == 'private, no-store'
+    assert response.content == b'%PDF-test'
 
 
 def test_pq_view_file_returns_authenticated_pdf(authenticated_client, sample_pq, monkeypatch):
@@ -191,4 +199,3 @@ def test_upload_rejects_conflicting_programme_levels(authenticated_client, test_
 
     assert response.status_code == 400
     assert response.json()['detail'] == 'Course has conflicting programme levels'
-

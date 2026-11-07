@@ -1,0 +1,27 @@
+<style>
+    .site-footer { padding: 28px 20px; background: #0f172a; color: #cbd5e1; }
+    .site-footer-inner { display: flex; align-items: center; justify-content: space-between; gap: 20px; width: min(100%, 1100px); margin: 0 auto; }
+    .site-footer-inner > div { display: grid; gap: 5px; }
+    .site-footer strong { color: #fff; font-size: 1.1rem; }
+    .site-footer span, .site-footer small { color: #94a3b8; }
+    .site-footer nav { display: flex; flex-wrap: wrap; gap: 16px; }
+    .site-footer a { color: #cbd5e1; text-decoration: none; }
+    .site-footer a:hover { color: #fff; }
+    @media (max-width: 700px) {
+        .site-footer-inner { align-items: flex-start; flex-direction: column; }
+    }
+</style>
+<footer class="site-footer">
+    <div class="site-footer-inner">
+        <div>
+            <strong>ExamVault</strong>
+            <span>Past questions. Organized. Searchable. Accessible.</span>
+        </div>
+        <nav aria-label="Footer navigation">
+            <a href="/privacy-policy">Privacy Policy</a>
+            <a href="/terms-of-service">Terms of Service</a>
+            <a href="mailto:adefemiadewusi07@gmail.com">Contact us</a>
+        </nav>
+        <small>© 2026 ExamVault. All rights reserved.</small>
+    </div>
+</footer>
