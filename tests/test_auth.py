@@ -1,3 +1,5 @@
+from datetime import datetime, timedelta, timezone
+
 from app.models import AuthSession, User
 
 
@@ -7,6 +9,86 @@ def test_login_success(client,sample_user):
     assert response.status_code == 200
     assert 'access_token' in response.json()
     assert response.json()['token_type'] == 'bearer'
+
+
+def test_remember_me_login_persists_refresh_session(client, sample_user, test_db):
+    response = client.post(
+        '/auth/token',
+        data={'username': sample_user.email, 'password': 'Password', 'client_id': 'remember'},
+    )
+    assert response.status_code == 200
+    session = test_db.query(AuthSession).filter(AuthSession.user_id == sample_user.id).order_by(AuthSession.id.desc()).first()
+    assert session is not None
+    assert session.is_persistent is True
+    assert session.expires_at is None
+    assert client.cookies.get('refresh_token') is not None
+
+
+def test_non_persistent_login_expires_after_30_minutes(client, sample_user, test_db):
+    response = client.post(
+        '/auth/token',
+        data={'username': sample_user.email, 'password': 'Password', 'client_id': 'session'},
+    )
+    assert response.status_code == 200
+    session = test_db.query(AuthSession).filter(AuthSession.user_id == sample_user.id).order_by(AuthSession.id.desc()).first()
+    assert session is not None
+    assert session.is_persistent is False
+    assert session.expires_at is not None
+    expires_in_seconds = (session.expires_at - session.created_at).total_seconds()
+    assert abs(expires_in_seconds - 1800) < 5
+
+
+def test_refresh_preserves_non_persistent_absolute_expiry(client, sample_user, test_db):
+    login_response = client.post(
+        '/auth/token',
+        data={'username': sample_user.email, 'password': 'Password', 'client_id': 'session'},
+    )
+    assert login_response.status_code == 200
+    session = test_db.query(AuthSession).filter(AuthSession.user_id == sample_user.id).order_by(AuthSession.id.desc()).first()
+    original_expiry = session.expires_at
+
+    refresh_response = client.post('/auth/refresh')
+    assert refresh_response.status_code == 200
+
+    sessions = test_db.query(AuthSession).filter(AuthSession.user_id == sample_user.id).order_by(AuthSession.id).all()
+    assert len(sessions) == 2
+    assert sessions[0].revoked_at is not None
+    assert sessions[1].expires_at == original_expiry
+    assert sessions[1].revoked_at is None
+
+
+def test_access_token_type_is_validated(client, sample_user):
+    from app.routers.auth import create_access_token
+
+    invalid_token = create_access_token({'sub': sample_user.email}, timedelta(minutes=15))
+    response = client.get(
+        '/dashboard',
+        headers={'Authorization': f'Bearer {invalid_token}', 'Accept': 'application/json'},
+    )
+    assert response.status_code == 401
+    assert response.json() == {'detail': 'Unable to validate credentials'}
+
+
+def test_root_redirects_authenticated_user(client, sample_user):
+    login_response = client.post(
+        '/auth/token',
+        data={'username': sample_user.email, 'password': 'Password'},
+    )
+    assert login_response.status_code == 200
+    response = client.get('/', follow_redirects=False)
+    assert response.status_code == 303
+    assert response.headers['location'] == '/dashboard'
+
+
+def test_login_page_redirects_authenticated_user(client, sample_user):
+    login_response = client.post(
+        '/auth/token',
+        data={'username': sample_user.email, 'password': 'Password'},
+    )
+    assert login_response.status_code == 200
+    response = client.get('/auth/login-page', follow_redirects=False)
+    assert response.status_code == 303
+    assert response.headers['location'] == '/dashboard'
 
 def test_login_failure(client,sample_user):
     response = client.post('/auth/token',

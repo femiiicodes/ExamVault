@@ -17,7 +17,15 @@ templates = Jinja2Templates(directory='templates')
 
 app.mount('/static',StaticFiles(directory='static'),name='static')
 @app.get('/')
-async def render_landing_page(request:Request):
+async def render_landing_page(request:Request, db:Annotated[Session,Depends(get_db)]=None):
+    token = request.cookies.get('access_token')
+    if token:
+        try:
+            user = await get_current_user(request, db, token=token)
+            if user:
+                return RedirectResponse(url='/dashboard', status_code=303)
+        except HTTPException:
+            pass
     return templates.TemplateResponse(request=request,name='landing-page.html')
 
 @app.get('/privacy-policy')

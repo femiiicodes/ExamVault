@@ -43,6 +43,7 @@ if not JWT_SECRET_KEY:
 ACCESS_TOKEN_MINUTES = 15
 SESSION_COOKIE = 'access_token'
 REFRESH_COOKIE = 'refresh_token'
+SESSION_LIFETIME_SECONDS = 30 * 60
 REFRESH_TOKEN_DAYS = 30
 PERSISTENT_COOKIE_DAYS = 3650
 SECURITY_QUESTIONS = {
@@ -92,15 +93,36 @@ def create_access_token(data: dict, expires_delta: timedelta):
     return jwt.encode(payload, key=JWT_SECRET_KEY, algorithm=ALGORITHM)
 
 
-def create_refresh_session(db: Session, user: User, persistent: bool) -> str:
+def _normalize_datetime(value: datetime | None) -> datetime | None:
+    if value is None:
+        return None
+    if value.tzinfo is None:
+        return value.replace(tzinfo=timezone.utc)
+    return value.astimezone(timezone.utc)
+
+
+def get_cookie_secure_flag(request: Request) -> bool:
+    forwarded_proto = (request.headers.get('x-forwarded-proto') or '').lower()
+    if forwarded_proto:
+        return forwarded_proto == 'https'
+    return request.url.scheme == 'https'
+
+
+def create_refresh_session(
+    db: Session,
+    user: User,
+    persistent: bool,
+    expires_at: datetime | None = None,
+) -> str:
     raw_token = secrets.token_urlsafe(48)
+    now = datetime.now(timezone.utc)
+    normalized_expires_at = _normalize_datetime(expires_at)
     session = AuthSession(
         user_id=user.id,
         token_hash=hash_token(raw_token),
-        created_at=datetime.now(timezone.utc),
+        created_at=now,
         expires_at=(
-            datetime.now(timezone.utc) + timedelta(days=REFRESH_TOKEN_DAYS)
-            if not persistent else None
+            None if persistent else (normalized_expires_at or (now + timedelta(seconds=SESSION_LIFETIME_SECONDS)))
         ),
         is_persistent=persistent,
     )
@@ -110,7 +132,7 @@ def create_refresh_session(db: Session, user: User, persistent: bool) -> str:
 
 
 def set_auth_cookies(response, access_token: str, refresh_token: str, persistent: bool, request: Request):
-    secure = request.url.scheme == 'https'
+    secure = get_cookie_secure_flag(request)
     response.set_cookie(
         key=SESSION_COOKIE,
         value=access_token,
@@ -118,14 +140,16 @@ def set_auth_cookies(response, access_token: str, refresh_token: str, persistent
         samesite='lax',
         max_age=ACCESS_TOKEN_MINUTES * 60,
         secure=secure,
+        path='/',
     )
     response.set_cookie(
         key=REFRESH_COOKIE,
         value=refresh_token,
         httponly=True,
         samesite='lax',
-        max_age=(PERSISTENT_COOKIE_DAYS * 86400 if persistent else None),
+        max_age=(PERSISTENT_COOKIE_DAYS * 86400 if persistent else SESSION_LIFETIME_SECONDS),
         secure=secure,
+        path='/',
     )
 
 
@@ -251,7 +275,15 @@ async def render_register_page(request: Request):
 
 
 @router.get('/login-page')
-async def render_login_page(request: Request):
+async def render_login_page(request: Request, db: db_dependency):
+    access_token = request.cookies.get(SESSION_COOKIE)
+    if access_token:
+        try:
+            user = await get_current_user(request, db, access_token)
+            if user:
+                return RedirectResponse(url='/dashboard', status_code=303)
+        except HTTPException:
+            pass
     return templates.TemplateResponse(request=request, name='login-page.html')
 
 
@@ -421,7 +453,7 @@ async def login_for_access_token(
 
     persistent = form_data.client_id == 'remember'
     access_token = create_access_token(
-        {'sub': user.email},
+        {'sub': user.email, 'type': 'access'},
         expires_delta=timedelta(minutes=ACCESS_TOKEN_MINUTES),
     )
     refresh_token = create_refresh_session(db, user, persistent)
@@ -441,23 +473,34 @@ async def refresh_access_token(request: Request, db: db_dependency):
     if not raw_token:
         raise HTTPException(status_code=401, detail='Refresh session missing')
 
-    session = db.query(AuthSession).filter(
-        AuthSession.token_hash == hash_token(raw_token),
-        AuthSession.revoked_at.is_(None),
-    ).first()
     now = datetime.now(timezone.utc)
-    if session is None or (session.expires_at and session.expires_at <= now):
-        raise HTTPException(status_code=401, detail='Refresh session expired')
+    try:
+        session = db.query(AuthSession).filter(
+            AuthSession.token_hash == hash_token(raw_token),
+            AuthSession.revoked_at.is_(None),
+        ).with_for_update().first()
+        if session is None:
+            raise HTTPException(status_code=401, detail='Refresh session expired')
+        expires_at = _normalize_datetime(session.expires_at)
+        if expires_at is not None and expires_at <= now:
+            raise HTTPException(status_code=401, detail='Refresh session expired')
 
-    session.revoked_at = now
-    new_refresh = create_refresh_session(db, session.user, session.is_persistent)
-    access_token = create_access_token(
-        {'sub': session.user.email},
-        expires_delta=timedelta(minutes=ACCESS_TOKEN_MINUTES),
-    )
-    response = JSONResponse(content={'access_token': access_token, 'token_type': 'bearer'})
-    set_auth_cookies(response, access_token, new_refresh, session.is_persistent, request)
-    return response
+        session.revoked_at = now
+        new_refresh = create_refresh_session(db, session.user, session.is_persistent, expires_at=expires_at)
+        access_token = create_access_token(
+            {'sub': session.user.email, 'type': 'access'},
+            expires_delta=timedelta(minutes=ACCESS_TOKEN_MINUTES),
+        )
+        response = JSONResponse(content={'access_token': access_token, 'token_type': 'bearer'})
+        set_auth_cookies(response, access_token, new_refresh, session.is_persistent, request)
+        db.commit()
+        return response
+    except HTTPException:
+        db.rollback()
+        raise
+    except Exception:
+        db.rollback()
+        raise
 
 
 async def get_current_user(
@@ -477,8 +520,9 @@ async def get_current_user(
 
     try:
         payload = jwt.decode(token, key=JWT_SECRET_KEY, algorithms=[ALGORITHM])
+        token_type = payload.get('type')
         email = payload.get('sub')
-        if email is None:
+        if token_type != 'access' or email is None:
             raise credential_exception
     except JWTError:
         raise credential_exception
@@ -493,8 +537,9 @@ async def get_current_user(
 async def logout(request: Request, db: db_dependency):
     revoke_session(db, request.cookies.get(REFRESH_COOKIE))
     response = JSONResponse(content={'detail': 'Logged out successfully'})
-    response.delete_cookie(key=SESSION_COOKIE, samesite='lax', secure=request.url.scheme == 'https')
-    response.delete_cookie(key=REFRESH_COOKIE, samesite='lax', secure=request.url.scheme == 'https')
+    secure = get_cookie_secure_flag(request)
+    response.delete_cookie(key=SESSION_COOKIE, samesite='lax', secure=secure, path='/')
+    response.delete_cookie(key=REFRESH_COOKIE, samesite='lax', secure=secure, path='/')
     return response
 
 
@@ -528,7 +573,7 @@ async def add_user(request: Request, db: db_dependency, new_user: UserRequest):
         db.rollback()
         raise HTTPException(status_code=409, detail='Unable to create this account') from error
     access_token = create_access_token(
-        {'sub': new_user_obj.email},
+        {'sub': new_user_obj.email, 'type': 'access'},
         expires_delta=timedelta(minutes=ACCESS_TOKEN_MINUTES),
     )
     refresh_token = create_refresh_session(db, new_user_obj, new_user.remember_me)
