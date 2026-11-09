@@ -7,8 +7,12 @@ from pydantic import BaseModel, ConfigDict
 from datetime import datetime
 from app.models import Course, ProgrammeCourse, Pq, User
 from app.services.access_control import (
+    VIEW_GRANT_COOKIE,
+    VIEW_GRANT_TTL_SECONDS,
+    create_view_grant,
     finalize_view_authorization,
     free_views_remaining,
+    get_valid_view_grant,
     preauthorize_view,
     require_download_access,
 )
@@ -158,6 +162,7 @@ async def view_pq_file(
     range_header = request.headers.get('range')
     response_status = 500
     response_bytes = 0
+    view_grant_valid = False
     pq_lookup_duration_ms = None
     preauthorize_duration_ms = None
     r2_metadata_duration_ms = None
@@ -169,7 +174,7 @@ async def view_pq_file(
             'pdf_view status=%s pq_id=%s has_range=%s range=%s '
             'response_bytes=%s auth_ms=%.2f pq_lookup_ms=%.2f '
             'preauthorize_ms=%.2f r2_metadata_ms=%.2f r2_get_ms=%.2f '
-            'finalize_ms=%.2f total_ms=%.2f',
+            'finalize_ms=%.2f grant_valid=%s total_ms=%.2f',
             response_status,
             id,
             bool(range_header),
@@ -181,6 +186,7 @@ async def view_pq_file(
             r2_metadata_duration_ms if r2_metadata_duration_ms is not None else -1,
             r2_get_duration_ms if r2_get_duration_ms is not None else -1,
             finalize_duration_ms if finalize_duration_ms is not None else -1,
+            view_grant_valid,
             (time.perf_counter() - endpoint_started_at) * 1000,
         )
 
@@ -199,25 +205,37 @@ async def view_pq_file(
         log_pdf_view()
         raise HTTPException(status_code=404, detail='Pq file not found')
 
-    try:
-        preauthorize_started_at = time.perf_counter()
-        preauthorize_view(db, user, pq_model)
-        preauthorize_duration_ms = (time.perf_counter() - preauthorize_started_at) * 1000
+    view_grant = get_valid_view_grant(
+        request.cookies.get(VIEW_GRANT_COOKIE),
+        user,
+        pq_model,
+    )
+    view_grant_valid = view_grant is not None
 
-        metadata_started_at = time.perf_counter()
-        metadata = get_file_metadata(pq_model.file_key)
-        r2_metadata_duration_ms = (time.perf_counter() - metadata_started_at) * 1000
-        total_size = metadata['ContentLength']
+    try:
+        if not view_grant_valid:
+            preauthorize_started_at = time.perf_counter()
+            preauthorize_view(db, user, pq_model)
+            preauthorize_duration_ms = (time.perf_counter() - preauthorize_started_at) * 1000
+
         response_status = 200
+        metadata = None
         response_headers = {
             'Accept-Ranges': 'bytes',
             'Content-Type': 'application/pdf',
-            'Content-Length': str(total_size),
             'Content-Disposition': 'inline',
             'Cache-Control': 'private, no-store',
         }
 
         if range_header:
+            if view_grant is not None:
+                total_size = view_grant['file_size']
+            else:
+                metadata_started_at = time.perf_counter()
+                metadata = get_file_metadata(pq_model.file_key)
+                r2_metadata_duration_ms = (time.perf_counter() - metadata_started_at) * 1000
+                total_size = metadata['ContentLength']
+            response_headers['Content-Length'] = str(total_size)
             if not range_header.startswith('bytes=') or ',' in range_header:
                 raise HTTPException(status_code=416, detail='Invalid byte range')
 
@@ -253,10 +271,18 @@ async def view_pq_file(
             get_file_started_at = time.perf_counter()
             metadata = get_file(pq_model.file_key)
             r2_get_duration_ms = (time.perf_counter() - get_file_started_at) * 1000
+            total_size = metadata.get('ContentLength')
+            if total_size is None:
+                metadata_started_at = time.perf_counter()
+                metadata_info = get_file_metadata(pq_model.file_key)
+                r2_metadata_duration_ms = (time.perf_counter() - metadata_started_at) * 1000
+                total_size = metadata_info['ContentLength']
+            response_headers['Content-Length'] = str(total_size)
 
-        finalize_started_at = time.perf_counter()
-        finalize_view_authorization(db, user, pq_model)
-        finalize_duration_ms = (time.perf_counter() - finalize_started_at) * 1000
+        if not view_grant_valid:
+            finalize_started_at = time.perf_counter()
+            finalize_view_authorization(db, user, pq_model)
+            finalize_duration_ms = (time.perf_counter() - finalize_started_at) * 1000
         body = metadata['Body']
 
         def stream_body():
@@ -269,12 +295,22 @@ async def view_pq_file(
                 body.close()
                 log_pdf_view()
 
-        return StreamingResponse(
+        response = StreamingResponse(
             stream_body(),
             status_code=response_status,
             headers=response_headers,
             media_type='application/pdf',
         )
+        response.set_cookie(
+            key=VIEW_GRANT_COOKIE,
+            value=create_view_grant(user, pq_model, total_size),
+            max_age=VIEW_GRANT_TTL_SECONDS,
+            httponly=True,
+            secure=request.url.scheme == 'https',
+            samesite='lax',
+            path='/pqs/view_file',
+        )
+        return response
     except HTTPException as error:
         response_status = error.status_code
         log_pdf_view()
