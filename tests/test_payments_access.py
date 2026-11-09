@@ -91,7 +91,8 @@ def test_free_view_limit_is_global_and_reopening_is_free(
     assert authenticated_client.get('/pqs/view_file', params={'id': sample_pq.id}).status_code == 200
     assert authenticated_client.get('/pqs/view_file', params={'id': sample_pq.id}).status_code == 200
     assert authenticated_client.get('/pqs/view_file', params={'id': second.id}).status_code == 200
-    assert authenticated_client.get('/pqs/view_file', params={'id': third.id}).status_code == 402
+    assert authenticated_client.get('/pqs/view_file', params={'id': third.id}).status_code == 200
+    assert authenticated_client.get('/pqs/view_file', params={'id': sample_pq.id}).status_code == 200
 
 
 def test_webhook_signature_is_required(client, monkeypatch):

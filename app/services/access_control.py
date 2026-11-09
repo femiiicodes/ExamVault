@@ -9,7 +9,7 @@ from app.models import AcademicPeriod, DailyPqView, Entitlement, Pq, User
 
 
 LAGOS = ZoneInfo('Africa/Lagos')
-DAILY_FREE_VIEW_LIMIT = 2
+DAILY_FREE_VIEW_LIMIT = 5
 
 
 def current_lagos_date() -> str:

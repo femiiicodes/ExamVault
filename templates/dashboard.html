@@ -584,6 +584,8 @@
                     const user = await userResponse.json();
                     document.getElementById('welcomeName').textContent = user.first_name || 'there';
                 }
+                resultsView.style.display = 'block';
+                renderResults();
             } catch (error) {
                 resultsView.style.display = 'block';
                 resultsTitle.textContent = 'Past Questions';
@@ -715,12 +717,11 @@
             const hasFilters = activeFilters.course || activeFilters.type || activeFilters.session;
 
             if (!hasSearch && !hasFilters) {
-                resultsView.style.display = 'none';
                 filterChips.style.display = 'none';
-                return;
+                resultsView.style.display = 'block';
+            } else {
+                resultsView.style.display = 'block';
             }
-
-            resultsView.style.display = 'block';
 
             let filtered = pastQuestions.filter(pq => {
                 const matchesCourse = !activeFilters.course || pq.course_code === activeFilters.course;
