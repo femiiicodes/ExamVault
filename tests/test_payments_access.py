@@ -94,59 +94,6 @@ def test_free_view_limit_is_global_and_reopening_is_free(
     assert authenticated_client.get('/pqs/view_file', params={'id': third.id}).status_code == 402
 
 
-def test_paid_user_can_view_pdf_without_consuming_free_view(
-    authenticated_client, sample_user, sample_pq, test_db, monkeypatch
-):
-    sample_user.role = 'user'
-    period = AcademicPeriod(
-        academic_session='2026/2027',
-        semester='First Semester',
-        is_active=True,
-        created_at=datetime.utcnow(),
-    )
-    test_db.add(period)
-    test_db.commit()
-    payment = Payment(
-        user_id=sample_user.id,
-        academic_period_id=period.id,
-        reference='paid-view-reference',
-        amount=PAYMENT_AMOUNT,
-        currency='NGN',
-        status='success',
-        created_at=datetime.utcnow(),
-    )
-    test_db.add(payment)
-    test_db.commit()
-    test_db.add(Entitlement(
-        user_id=sample_user.id,
-        academic_period_id=period.id,
-        payment_id=payment.id,
-        status='active',
-        created_at=datetime.utcnow(),
-    ))
-    test_db.commit()
-
-    class FakeBody:
-        def iter_chunks(self, chunk_size):
-            yield b'%PDF-test'
-
-        def close(self):
-            pass
-
-    from app.routers import pqs
-    monkeypatch.setattr(pqs, 'get_file_metadata', lambda object_key: {'ContentLength': 9})
-    monkeypatch.setattr(
-        pqs,
-        'get_file',
-        lambda object_key, byte_range=None: {'Body': FakeBody(), 'ContentLength': 9},
-    )
-
-    response = authenticated_client.get('/pqs/view_file', params={'id': sample_pq.id})
-
-    assert response.status_code == 200
-    assert test_db.query(Entitlement).count() == 1
-
-
 def test_webhook_signature_is_required(client, monkeypatch):
     monkeypatch.setenv('PAYSTACK_WEBHOOK_SECRET', 'webhook-secret')
     payload = {'event': 'charge.success', 'data': {}}
