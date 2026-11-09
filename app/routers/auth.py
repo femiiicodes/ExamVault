@@ -4,7 +4,6 @@ import hashlib
 import logging
 import os
 import secrets
-import time
 from threading import Lock
 from typing import Annotated
 from urllib.parse import quote
@@ -466,12 +465,10 @@ async def get_current_user(
     db: db_dependency,
     token=Depends(oauth2_scheme),
 ):
-    auth_started_at = time.perf_counter()
     credential_exception = HTTPException(status_code=401, detail='Unable to validate credentials')
     token = token or request.cookies.get(SESSION_COOKIE)
     if token is None:
         if 'text/html' in request.headers.get('accept', ''):
-            request.state.auth_duration_ms = (time.perf_counter() - auth_started_at) * 1000
             return RedirectResponse(
                 url=f'/auth/login-page?next={request.url.path}',
                 status_code=303,
@@ -489,7 +486,6 @@ async def get_current_user(
     user = get_user(db, email)
     if not user:
         raise credential_exception
-    request.state.auth_duration_ms = (time.perf_counter() - auth_started_at) * 1000
     return user
 
 
