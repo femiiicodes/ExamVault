@@ -243,6 +243,7 @@
         let userPdfRenderToken = 0;
         let currentPreviewPq = null;
         let accessStatus = null;
+        let currentPdfLoadStartedAt = null;
 
         function protectPdfPages(viewportId, pageSelector) {
             const viewport = document.getElementById(viewportId);
@@ -312,7 +313,14 @@
 
         function openPreviewModal(pq) {
             currentPreviewPq = pq;
+            const accessStartedAt = performance.now();
             fetch(`/pqs/access?id=${pq.id}`).then(async response => {
+                console.info('[ExamVault PDF timing]', {
+                    event: 'pq_access',
+                    pq_id: pq.id,
+                    status: response.status,
+                    duration_ms: Math.round(performance.now() - accessStartedAt)
+                });
                 if (!response.ok) {
                     if (response.status === 402) {
                         showPaymentModal(true);
@@ -423,14 +431,48 @@
         async function loadUserPdf(fileUrl) {
             resetUserPdfViewer();
             const token = ++userPdfRenderToken;
+            currentPdfLoadStartedAt = performance.now();
             setUserPdfStatus('Loading document...');
             try {
+                const documentStartedAt = performance.now();
                 userPdfDocument = await pdfjsLib.getDocument(fileUrl).promise;
+                const documentDurationMs = performance.now() - documentStartedAt;
                 if (token !== userPdfRenderToken) return;
                 userPdfTotalPages = userPdfDocument.numPages;
                 userPdfCurrentPage = 1;
-                await renderUserPdfPages(token);
+                const renderMetrics = await renderUserPdfPages(token);
                 if (token === userPdfRenderToken) {
+                    const absolutePdfUrl = new URL(fileUrl, window.location.href).href;
+                    const resourceEntries = performance.getEntriesByType('resource')
+                        .filter(entry => entry.name === absolutePdfUrl);
+                    const firstPdfResource = resourceEntries
+                        .slice()
+                        .sort((first, second) => first.startTime - second.startTime)[0];
+                    const pdfBytes = resourceEntries.reduce(
+                        (total, entry) => total + (entry.encodedBodySize || 0),
+                        0
+                    );
+                    const pdfTransferBytes = resourceEntries.reduce(
+                        (total, entry) => total + (entry.transferSize || 0),
+                        0
+                    );
+                    console.info('[ExamVault PDF timing]', {
+                        event: 'pdf_open',
+                        pq_id: currentPreviewPq ? currentPreviewPq.id : null,
+                        pages: userPdfTotalPages,
+                        document_load_ms: Math.round(documentDurationMs),
+                        first_page_render_ms: Math.round(renderMetrics.firstPageRenderMs),
+                        all_pages_render_ms: Math.round(renderMetrics.allPagesRenderMs),
+                        pdf_request_count: resourceEntries.length,
+                        pdf_request_first_byte_ms: firstPdfResource
+                            ? Math.round(firstPdfResource.responseStart - firstPdfResource.startTime)
+                            : null,
+                        pdf_bytes: pdfBytes || null,
+                        pdf_transfer_bytes: pdfTransferBytes || null,
+                        total_from_click_ms: currentPdfLoadStartedAt
+                            ? Math.round(performance.now() - currentPdfLoadStartedAt)
+                            : null
+                    });
                     setUserPdfStatus('');
                     updateUserPdfControls();
                     await loadAccessStatus();
@@ -445,6 +487,8 @@
         async function renderUserPdfPages(token) {
             const pagesContainer = document.getElementById('userPdfPages');
             pagesContainer.replaceChildren();
+            const renderStartedAt = performance.now();
+            let firstPageRenderMs = null;
             for (let pageNumber = 1; pageNumber <= userPdfTotalPages; pageNumber++) {
                 if (token !== userPdfRenderToken) return;
                 const page = await userPdfDocument.getPage(pageNumber);
@@ -465,7 +509,14 @@
                     canvasContext: canvas.getContext('2d'),
                     viewport
                 }).promise;
+                if (pageNumber === 1) {
+                    firstPageRenderMs = performance.now() - renderStartedAt;
+                }
             }
+            return {
+                firstPageRenderMs: firstPageRenderMs ?? performance.now() - renderStartedAt,
+                allPagesRenderMs: performance.now() - renderStartedAt
+            };
         }
 
         function updateUserPdfControls() {

@@ -1,4 +1,6 @@
 from typing import Annotated, Optional
+import logging
+import time
 from app.database import get_db
 from fastapi import APIRouter, Depends, UploadFile, File, Form
 from pydantic import BaseModel, ConfigDict
@@ -21,6 +23,7 @@ from services.storage import upload_file, get_file, get_file_metadata, delete_fi
 
 
 template = Jinja2Templates(directory='templates')
+logger = logging.getLogger(__name__)
 
 router = APIRouter(tags=['pqs'],prefix='/pqs')
 
@@ -150,20 +153,61 @@ async def view_pq_file(
     db: db_dependency,
     user: user_dependency,
 ):
+    endpoint_started_at = time.perf_counter()
+    auth_duration_ms = getattr(request.state, 'auth_duration_ms', None)
+    range_header = request.headers.get('range')
+    response_status = 500
+    response_bytes = 0
+    pq_lookup_duration_ms = None
+    preauthorize_duration_ms = None
+    r2_metadata_duration_ms = None
+    r2_get_duration_ms = None
+    finalize_duration_ms = None
+
+    def log_pdf_view() -> None:
+        logger.info(
+            'pdf_view status=%s pq_id=%s has_range=%s range=%s '
+            'response_bytes=%s auth_ms=%.2f pq_lookup_ms=%.2f '
+            'preauthorize_ms=%.2f r2_metadata_ms=%.2f r2_get_ms=%.2f '
+            'finalize_ms=%.2f total_ms=%.2f',
+            response_status,
+            id,
+            bool(range_header),
+            range_header or '-',
+            response_bytes,
+            auth_duration_ms if auth_duration_ms is not None else -1,
+            pq_lookup_duration_ms if pq_lookup_duration_ms is not None else -1,
+            preauthorize_duration_ms if preauthorize_duration_ms is not None else -1,
+            r2_metadata_duration_ms if r2_metadata_duration_ms is not None else -1,
+            r2_get_duration_ms if r2_get_duration_ms is not None else -1,
+            finalize_duration_ms if finalize_duration_ms is not None else -1,
+            (time.perf_counter() - endpoint_started_at) * 1000,
+        )
+
     if user is None:
         raise HTTPException(status_code=401, detail='User not authenticated')
 
+    pq_lookup_started_at = time.perf_counter()
     pq_model = db.query(Pq).filter(Pq.id == id).first()
+    pq_lookup_duration_ms = (time.perf_counter() - pq_lookup_started_at) * 1000
     if pq_model is None:
+        response_status = 404
+        log_pdf_view()
         raise HTTPException(status_code=404, detail='Pq not found')
     if not pq_model.file_key:
+        response_status = 404
+        log_pdf_view()
         raise HTTPException(status_code=404, detail='Pq file not found')
 
     try:
+        preauthorize_started_at = time.perf_counter()
         preauthorize_view(db, user, pq_model)
+        preauthorize_duration_ms = (time.perf_counter() - preauthorize_started_at) * 1000
+
+        metadata_started_at = time.perf_counter()
         metadata = get_file_metadata(pq_model.file_key)
+        r2_metadata_duration_ms = (time.perf_counter() - metadata_started_at) * 1000
         total_size = metadata['ContentLength']
-        range_header = request.headers.get('range')
         response_status = 200
         response_headers = {
             'Accept-Ranges': 'bytes',
@@ -199,21 +243,31 @@ async def view_pq_file(
                 raise HTTPException(status_code=416, detail='Invalid byte range')
             end = min(end, total_size - 1)
             content_length = end - start + 1
+            get_file_started_at = time.perf_counter()
             metadata = get_file(pq_model.file_key, f'bytes={start}-{end}')
+            r2_get_duration_ms = (time.perf_counter() - get_file_started_at) * 1000
             response_status = 206
             response_headers['Content-Length'] = str(content_length)
             response_headers['Content-Range'] = f'bytes {start}-{end}/{total_size}'
         else:
+            get_file_started_at = time.perf_counter()
             metadata = get_file(pq_model.file_key)
+            r2_get_duration_ms = (time.perf_counter() - get_file_started_at) * 1000
 
+        finalize_started_at = time.perf_counter()
         finalize_view_authorization(db, user, pq_model)
+        finalize_duration_ms = (time.perf_counter() - finalize_started_at) * 1000
         body = metadata['Body']
 
         def stream_body():
+            nonlocal response_bytes
             try:
-                yield from body.iter_chunks(chunk_size=1024 * 1024)
+                for chunk in body.iter_chunks(chunk_size=1024 * 1024):
+                    response_bytes += len(chunk)
+                    yield chunk
             finally:
                 body.close()
+                log_pdf_view()
 
         return StreamingResponse(
             stream_body(),
@@ -221,9 +275,13 @@ async def view_pq_file(
             headers=response_headers,
             media_type='application/pdf',
         )
-    except HTTPException:
+    except HTTPException as error:
+        response_status = error.status_code
+        log_pdf_view()
         raise
     except ClientError as error:
+        response_status = 404
+        log_pdf_view()
         raise HTTPException(status_code=404, detail='Pq file not found') from error
 
 
