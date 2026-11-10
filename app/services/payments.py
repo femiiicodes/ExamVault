@@ -14,7 +14,7 @@ from app.models import AcademicPeriod, Entitlement, Payment, User
 
 
 PAYSTACK_API = 'https://api.paystack.co'
-PAYMENT_AMOUNT = 300000
+PAYMENT_AMOUNT = 100000
 PAYMENT_CURRENCY = 'NGN'
 logger = logging.getLogger(__name__)
 
