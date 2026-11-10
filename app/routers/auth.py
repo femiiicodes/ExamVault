@@ -46,6 +46,7 @@ REFRESH_COOKIE = 'refresh_token'
 SESSION_LIFETIME_SECONDS = 30 * 60
 REFRESH_TOKEN_DAYS = 30
 PERSISTENT_COOKIE_DAYS = 3650
+PERSISTENT_TOKEN_LIFETIME = timedelta(days=PERSISTENT_COOKIE_DAYS)
 SECURITY_QUESTIONS = {
     'q1': "What is your mother's first name?",
     'q2': 'What state were you born in?',
@@ -138,7 +139,11 @@ def set_auth_cookies(response, access_token: str, refresh_token: str, persistent
         value=access_token,
         httponly=True,
         samesite='lax',
-        max_age=ACCESS_TOKEN_MINUTES * 60,
+        max_age=(
+            PERSISTENT_COOKIE_DAYS * 86400
+            if persistent
+            else ACCESS_TOKEN_MINUTES * 60
+        ),
         secure=secure,
         path='/',
     )
@@ -454,7 +459,11 @@ async def login_for_access_token(
     persistent = form_data.client_id == 'remember'
     access_token = create_access_token(
         {'sub': user.email, 'type': 'access'},
-        expires_delta=timedelta(minutes=ACCESS_TOKEN_MINUTES),
+        expires_delta=(
+            PERSISTENT_TOKEN_LIFETIME
+            if persistent
+            else timedelta(minutes=ACCESS_TOKEN_MINUTES)
+        ),
     )
     refresh_token = create_refresh_session(db, user, persistent)
     response = JSONResponse(content={
@@ -489,7 +498,11 @@ async def refresh_access_token(request: Request, db: db_dependency):
         new_refresh = create_refresh_session(db, session.user, session.is_persistent, expires_at=expires_at)
         access_token = create_access_token(
             {'sub': session.user.email, 'type': 'access'},
-            expires_delta=timedelta(minutes=ACCESS_TOKEN_MINUTES),
+            expires_delta=(
+                PERSISTENT_TOKEN_LIFETIME
+                if session.is_persistent
+                else timedelta(minutes=ACCESS_TOKEN_MINUTES)
+            ),
         )
         response = JSONResponse(content={'access_token': access_token, 'token_type': 'bearer'})
         set_auth_cookies(response, access_token, new_refresh, session.is_persistent, request)
@@ -600,7 +613,11 @@ async def add_user(request: Request, db: db_dependency, new_user: UserRequest):
         raise HTTPException(status_code=409, detail='Unable to create this account') from error
     access_token = create_access_token(
         {'sub': new_user_obj.email, 'type': 'access'},
-        expires_delta=timedelta(minutes=ACCESS_TOKEN_MINUTES),
+        expires_delta=(
+            PERSISTENT_TOKEN_LIFETIME
+            if new_user.remember_me
+            else timedelta(minutes=ACCESS_TOKEN_MINUTES)
+        ),
     )
     refresh_token = create_refresh_session(db, new_user_obj, new_user.remember_me)
     response = JSONResponse(
