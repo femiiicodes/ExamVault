@@ -11,7 +11,7 @@ from urllib.parse import quote
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from jose import JWTError, jwt
+from jose import ExpiredSignatureError, JWTError, jwt
 from passlib.context import CryptContext
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, model_validator
 from sqlalchemy.exc import IntegrityError
@@ -36,7 +36,7 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl='/auth/token', auto_error=False)
 ALGORITHM = 'HS256'
 JWT_SECRET_KEY = os.getenv('JWT_SECRET_KEY')
 if not JWT_SECRET_KEY:
-    if os.getenv('ENVIRONMENT', '').lower() == 'production':
+    if os.getenv('ENVIRONMENT', '').lower() == 'production' or os.getenv('VERCEL'):
         raise RuntimeError('JWT_SECRET_KEY must be configured in production')
     JWT_SECRET_KEY = secrets.token_urlsafe(32)
 
@@ -523,6 +523,32 @@ async def get_current_user(
         token_type = payload.get('type')
         email = payload.get('sub')
         if token_type != 'access' or email is None:
+            raise credential_exception
+    except ExpiredSignatureError:
+        if 'text/html' not in request.headers.get('accept', ''):
+            raise credential_exception
+        expired_payload = jwt.decode(
+            token,
+            key=JWT_SECRET_KEY,
+            algorithms=[ALGORITHM],
+            options={'verify_exp': False},
+        )
+        if expired_payload.get('type') != 'access' or expired_payload.get('sub') is None:
+            raise credential_exception
+        email = expired_payload['sub']
+        refresh_token = request.cookies.get(REFRESH_COOKIE)
+        if not refresh_token:
+            raise credential_exception
+        refresh_session = db.query(AuthSession).filter(
+            AuthSession.token_hash == hash_token(refresh_token),
+            AuthSession.revoked_at.is_(None),
+        ).first()
+        if refresh_session is None:
+            raise credential_exception
+        refresh_expires_at = _normalize_datetime(refresh_session.expires_at)
+        if refresh_expires_at is not None and refresh_expires_at <= datetime.now(timezone.utc):
+            raise credential_exception
+        if refresh_session.user.email != email:
             raise credential_exception
     except JWTError:
         raise credential_exception

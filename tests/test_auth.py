@@ -69,6 +69,27 @@ def test_access_token_type_is_validated(client, sample_user):
     assert response.json() == {'detail': 'Unable to validate credentials'}
 
 
+def test_dashboard_accepts_expired_access_token_with_valid_refresh_session(client, sample_user):
+    from app.routers.auth import create_access_token
+
+    login_response = client.post(
+        '/auth/token',
+        data={'username': sample_user.email, 'password': 'Password'},
+    )
+    assert login_response.status_code == 200
+    client.cookies.set(
+        'access_token',
+        create_access_token(
+            {'sub': sample_user.email, 'type': 'access'},
+            timedelta(minutes=-1),
+        ),
+    )
+
+    response = client.get('/dashboard', headers={'Accept': 'text/html'})
+
+    assert response.status_code == 200
+
+
 def test_root_redirects_authenticated_user(client, sample_user):
     login_response = client.post(
         '/auth/token',
@@ -448,7 +469,6 @@ def test_forgot_password_page_contains_valid_submit_flow(client):
     assert "requestJson('/auth/password-recovery/start', {email})" in html
     assert "recovery.method === 'security_questions'" in html
     assert "window.location.href = '/auth/reset-password-page?token='" in html
-
 
 
 
