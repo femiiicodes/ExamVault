@@ -870,10 +870,6 @@ body::before {
     display: none;
 }
 
-.user-pdf-viewport:fullscreen {
-    background: #0f172a;
-}
-
 .payment-modal {
     position: fixed;
     inset: 0;

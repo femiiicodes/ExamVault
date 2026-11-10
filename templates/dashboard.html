@@ -189,7 +189,6 @@
                         <button onclick="userPdfZoomOut()" aria-label="Zoom out">−</button>
                         <span id="userPdfZoomIndicator">100%</span>
                         <button onclick="userPdfZoomIn()" aria-label="Zoom in">+</button>
-                        <button onclick="toggleUserPdfFullscreen()" aria-label="Toggle fullscreen">Fullscreen</button>
                         <button id="userPdfDownloadButton" onclick="downloadUserPdf()" aria-label="Download PDF">↓ Download PDF <small>★</small></button>
                     </div>
                     <div class="user-pdf-viewport" id="userPdfViewport">
@@ -518,17 +517,6 @@
             userPdfZoomLevel = Math.max(userPdfZoomLevel - 0.25, 0.5);
             updateUserPdfControls();
             rerenderUserPdf();
-        }
-
-        function toggleUserPdfFullscreen() {
-            const viewport = document.getElementById('userPdfViewport');
-            if (document.fullscreenElement) {
-                document.exitFullscreen();
-            } else if (viewport.requestFullscreen) {
-                viewport.requestFullscreen();
-            } else if (viewport.webkitRequestFullscreen) {
-                viewport.webkitRequestFullscreen();
-            }
         }
 
         function setUserPdfStatus(message, isError = false) {

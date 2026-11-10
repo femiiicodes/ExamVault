@@ -412,7 +412,6 @@
                             <button onclick="viewPqZoomOut()" aria-label="Zoom out">−</button>
                             <span id="viewPqZoomIndicator">100%</span>
                             <button onclick="viewPqZoomIn()" aria-label="Zoom in">+</button>
-                            <button onclick="togglePqFullscreen()" aria-label="Toggle fullscreen">⛶</button>
                         </div>
                     </div>
                     <div class="pdf-preview-viewport pdf-viewer-viewport" id="viewPqViewport">
@@ -1063,17 +1062,6 @@
             viewPqZoomLevel = Math.max(viewPqZoomLevel - 0.25, 0.5);
             updateViewPqControls();
             rerenderViewPq();
-        }
-
-        function togglePqFullscreen() {
-            const viewport = document.getElementById('viewPqViewport');
-            if (document.fullscreenElement) {
-                document.exitFullscreen();
-            } else if (viewport.requestFullscreen) {
-                viewport.requestFullscreen();
-            } else if (viewport.webkitRequestFullscreen) {
-                viewport.webkitRequestFullscreen();
-            }
         }
 
         function setViewPqStatus(message, isError = false) {

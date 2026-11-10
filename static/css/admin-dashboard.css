@@ -1403,11 +1403,6 @@ body::before {
     display: none;
 }
 
-.pdf-viewer-viewport:fullscreen {
-    max-height: none;
-    background: #0f172a;
-}
-
 .review-summary {
     margin-bottom: 20px;
     padding: 16px;
