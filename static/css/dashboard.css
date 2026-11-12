@@ -777,6 +777,22 @@ body::before {
     color: #1d4ed8;
 }
 
+.user-pdf-toolbar .user-pdf-download-button {
+    border-color: var(--color-primary);
+    background: var(--color-primary);
+    color: #fff;
+}
+
+.user-pdf-toolbar .user-pdf-download-button:hover:not(:disabled) {
+    border-color: var(--color-primary-dark);
+    background: var(--color-primary-dark);
+    color: #fff;
+}
+
+.user-pdf-toolbar .user-pdf-download-button small {
+    color: #fff;
+}
+
 .user-pdf-toolbar button:disabled {
     cursor: not-allowed;
     opacity: 0.45;

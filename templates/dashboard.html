@@ -189,7 +189,7 @@
                         <button onclick="userPdfZoomOut()" aria-label="Zoom out">−</button>
                         <span id="userPdfZoomIndicator">100%</span>
                         <button onclick="userPdfZoomIn()" aria-label="Zoom in">+</button>
-                        <button id="userPdfDownloadButton" onclick="downloadUserPdf()" aria-label="Download PDF">↓ Download PDF <small>★</small></button>
+                        <button id="userPdfDownloadButton" class="user-pdf-download-button" type="button" onclick="downloadUserPdf()" aria-label="Download PDF">↓ Download PDF <small>★</small></button>
                     </div>
                     <div class="user-pdf-viewport" id="userPdfViewport">
                         <div class="user-pdf-status" id="userPdfStatus">
@@ -370,21 +370,32 @@
 
         async function downloadUserPdf() {
             if (!currentPreviewPq) return;
-            const response = await fetch(`/pqs/download_file?id=${currentPreviewPq.id}&download=true`);
-            if (response.status === 402) {
-                showPaymentModal();
-                return;
-            }
-            if (!response.ok) {
+            const button = document.getElementById('userPdfDownloadButton');
+            button.disabled = true;
+            try {
+                const response = await fetch(`/pqs/download_file?id=${currentPreviewPq.id}&download=true`);
+                if (response.status === 402) {
+                    showPaymentModal();
+                    return;
+                }
+                if (!response.ok) {
+                    alert('Unable to download this PDF.');
+                    return;
+                }
+                const blob = await response.blob();
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = currentPreviewPq.file_name || 'past-question.pdf';
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+                URL.revokeObjectURL(link.href);
+            } catch (error) {
+                console.error('PDF download error:', error);
                 alert('Unable to download this PDF.');
-                return;
+            } finally {
+                button.disabled = false;
             }
-            const blob = await response.blob();
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = currentPreviewPq.file_name || 'past-question.pdf';
-            link.click();
-            URL.revokeObjectURL(link.href);
         }
 
         async function loadAccessStatus() {
